@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { MediaCardFieldsFragment } from "@/lib/anilist/gql/graphql";
+import { formatCountdown } from "@/lib/utils/format";
 
 export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
   const title = media.title?.english ?? media.title?.romaji ?? "Untitled";
   const cover = media.coverImage?.large;
-  const score = media.averageScore;
+  const next = media.nextAiringEpisode;
 
   return (
     <Link
@@ -26,10 +27,19 @@ export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
             墨
           </div>
         )}
-        {typeof score === "number" && (
-          <span className="absolute right-1.5 top-1.5 rounded bg-bg/80 px-1.5 py-0.5 text-xs font-medium text-text">
-            {score}%
-          </span>
+        {next && (
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-bg/85 px-2 py-1 text-xs text-text backdrop-blur-sm">
+            <span className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="size-1.5 rounded-full bg-accent"
+              />
+              EP {next.episode}
+            </span>
+            <span className="text-text-muted">
+              {formatCountdown(next.timeUntilAiring)}
+            </span>
+          </div>
         )}
       </div>
       <div className="space-y-0.5">

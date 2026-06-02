@@ -128,10 +128,12 @@ export type MediaType =
 
 export type MediaCardFieldsFragment = { id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null };
 
+export type HeroFieldsFragment = { id: number, bannerImage: string | null, description: string | null, genres: Array<string | null> | null, format: MediaFormat | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null };
+
 export type HomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HomeQuery = { airing: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, trending: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, upcoming: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
+export type HomeQuery = { featured: { media: Array<{ id: number, bannerImage: string | null, description: string | null, genres: Array<string | null> | null, format: MediaFormat | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, airing: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, trending: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, upcoming: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
 
 export type AnimeDetailQueryVariables = Exact<{
   id: number;
@@ -210,8 +212,35 @@ export const MediaCardFieldsFragmentDoc = new TypedDocumentString(`
   }
 }
     `, {"fragmentName":"MediaCardFields"}) as unknown as TypedDocumentString<MediaCardFieldsFragment, unknown>;
+export const HeroFieldsFragmentDoc = new TypedDocumentString(`
+    fragment HeroFields on Media {
+  id
+  title {
+    romaji
+    english
+  }
+  bannerImage
+  coverImage {
+    large
+    color
+  }
+  description(asHtml: false)
+  genres
+  format
+  nextAiringEpisode {
+    episode
+    airingAt
+    timeUntilAiring
+  }
+}
+    `, {"fragmentName":"HeroFields"}) as unknown as TypedDocumentString<HeroFieldsFragment, unknown>;
 export const HomeDocument = new TypedDocumentString(`
     query Home {
+  featured: Page(page: 1, perPage: 6) {
+    media(status: RELEASING, sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+      ...HeroFields
+    }
+  }
   airing: Page(page: 1, perPage: 12) {
     media(status: RELEASING, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
       ...MediaCardFields
@@ -248,6 +277,26 @@ export const HomeDocument = new TypedDocumentString(`
   seasonYear
   genres
   episodes
+  nextAiringEpisode {
+    episode
+    airingAt
+    timeUntilAiring
+  }
+}
+fragment HeroFields on Media {
+  id
+  title {
+    romaji
+    english
+  }
+  bannerImage
+  coverImage {
+    large
+    color
+  }
+  description(asHtml: false)
+  genres
+  format
   nextAiringEpisode {
     episode
     airingAt

@@ -37,6 +37,12 @@ export function formatRelation(relation?: string | null): string | null {
     .replace(/^\w/, (c) => c.toUpperCase());
 }
 
+/** AniList scores are 0-100; show them on a friendly 0-10 scale (e.g. 7.6). */
+export function formatScore(score?: number | null): string | null {
+  if (typeof score !== "number") return null;
+  return (score / 10).toFixed(1);
+}
+
 /** AniList descriptions (asHtml:false) can still contain a few inline tags. */
 export function stripHtml(text?: string | null): string {
   if (!text) return "";

@@ -30,8 +30,41 @@ export const MediaCardFields = graphql(`
   }
 `);
 
+export const HeroFields = graphql(`
+  fragment HeroFields on Media {
+    id
+    title {
+      romaji
+      english
+    }
+    bannerImage
+    coverImage {
+      large
+      color
+    }
+    description(asHtml: false)
+    genres
+    format
+    nextAiringEpisode {
+      episode
+      airingAt
+      timeUntilAiring
+    }
+  }
+`);
+
 export const HomeQuery = graphql(`
   query Home {
+    featured: Page(page: 1, perPage: 6) {
+      media(
+        status: RELEASING
+        sort: TRENDING_DESC
+        type: ANIME
+        isAdult: false
+      ) {
+        ...HeroFields
+      }
+    }
     airing: Page(page: 1, perPage: 12) {
       media(
         status: RELEASING

@@ -8,6 +8,7 @@ import {
   formatCountdown,
   formatLabel,
   formatRelation,
+  formatScore,
   statusLabel,
   stripHtml,
 } from "@/lib/utils/format";
@@ -38,6 +39,11 @@ export default async function AnimeDetailPage({ params }: Params) {
   const media = await loadAnime(id);
 
   const title = media.title?.english ?? media.title?.romaji ?? "Untitled";
+  const romaji =
+    media.title?.romaji && media.title.romaji !== title
+      ? media.title.romaji
+      : null;
+  const score = formatScore(media.averageScore);
   const cover = media.coverImage?.extraLarge;
   const description = stripHtml(media.description);
   const studios = media.studios?.nodes?.filter((s) => s) ?? [];
@@ -131,24 +137,25 @@ export default async function AnimeDetailPage({ params }: Params) {
 
           {/* Main column */}
           <div className="space-y-6 md:pt-24">
-            <header className="space-y-2">
+            <header className="space-y-1.5">
               <h1 className="font-serif text-3xl leading-tight text-text sm:text-4xl">
                 {title}
               </h1>
+              {romaji && <p className="text-text-muted">{romaji}</p>}
               {media.title?.native && (
-                <p className="font-jp text-text-muted">{media.title.native}</p>
+                <p className="font-jp text-sm text-text-muted">
+                  {media.title.native}
+                </p>
               )}
             </header>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
-              {typeof media.averageScore === "number" && (
-                <span className="font-medium text-accent">
-                  {media.averageScore}%
-                </span>
+              {score && (
+                <span className="font-medium text-accent">★ {score}</span>
               )}
               {meta.map((item, i) => (
                 <span key={i} className="flex items-center gap-3">
-                  {(i > 0 || typeof media.averageScore === "number") && (
+                  {(i > 0 || score) && (
                     <span aria-hidden className="text-border">
                       ·
                     </span>
