@@ -1,6 +1,6 @@
-# Sumi — Anime Tracking and More
+# Sumi — Track & Explore New Anime
 
-> **墨** — Discover anime with a calm, warm, editorial UI.
+> **墨** — Explore anime with a calm, warm, editorial UI.
 
 Sumi is a full-stack portfolio project for browsing and discovering anime:
 home spotlight, filtered browse, airing schedule, and anime detail pages — powered

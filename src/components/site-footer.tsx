@@ -6,8 +6,8 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-text-muted sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-3">
           <span>
-            <span className="font-serif text-base text-text">Sumi</span> — Anime
-            Tracking and More
+            <span className="font-serif text-base text-text">Sumi</span> — Track
+            &amp; Explore New Anime
           </span>
           <Link
             href="/about"

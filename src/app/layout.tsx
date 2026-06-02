@@ -26,11 +26,17 @@ const jp = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: {
-    default: "Sumi — Anime Tracking and More",
+    default: "Sumi — Track & Explore New Anime",
     template: "%s · Sumi",
   },
   description:
-    "Discover the season. A dark, editorial anime discovery app — browse trending, popular, and seasonal anime, search, filter, and follow the airing schedule.",
+    "Browse airing and trending anime, search the full catalog, filter by genre and season, and see what's on this week — a calm, dark editorial discovery app.",
+  openGraph: {
+    title: "Sumi — Track & Explore New Anime",
+    description:
+      "Browse airing and trending anime, search the catalog, and check the weekly schedule.",
+    siteName: "Sumi",
+  },
 };
 
 export default function RootLayout({
