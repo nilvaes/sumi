@@ -3,6 +3,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { MediaGrid, MediaGridSkeleton } from "@/components/media-grid";
 import {
+  browseQueryKey,
   filtersToSearchParams,
   type BrowseFilters,
 } from "@/lib/anilist/filters";
@@ -21,17 +22,27 @@ async function fetchPage(
   return res.json();
 }
 
-export function BrowseResults({ filters }: { filters: BrowseFilters }) {
+export function BrowseResults({
+  filters,
+  initialPage,
+}: {
+  filters: BrowseFilters;
+  initialPage: BrowsePage | null | undefined;
+}) {
   const query = useInfiniteQuery({
-    queryKey: ["browse", filters],
+    queryKey: ["browse", browseQueryKey(filters)],
     queryFn: ({ pageParam }) => fetchPage(filters, pageParam),
     initialPageParam: 1,
+    initialData: initialPage
+      ? { pages: [initialPage], pageParams: [1] }
+      : undefined,
     getNextPageParam: (last) =>
       last.pageInfo?.hasNextPage
         ? (last.pageInfo.currentPage ?? 1) + 1
         : undefined,
   });
 
+  // Only skeleton when there is no data yet (e.g. client nav edge case).
   if (query.isPending) return <MediaGridSkeleton count={24} />;
 
   if (query.isError) {

@@ -121,6 +121,11 @@ export function parseBrowseFilters(params: RawParams): BrowseFilters {
   };
 }
 
+/** Stable key for TanStack Query (avoids object identity issues in queryKey). */
+export function browseQueryKey(filters: BrowseFilters): string {
+  return filtersToSearchParams(filters).toString();
+}
+
 /** Serialize filters back into a query string (omitting defaults/empties). */
 export function filtersToSearchParams(filters: BrowseFilters): URLSearchParams {
   const sp = new URLSearchParams();
