@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/*
+  Sumi — warm dark editorial theme.
+  One accent only (burnt terracotta). No purple/cyan, no glassmorphism.
+  Source tokens are semantic so a future light theme / accent swap is a one-line change.
+*/
+
+:root {
+  --bg: #0f0e0d; /* warm near-black */
+  --surface: #1a1816; /* lifted card */
+  --surface-hover: #221f1c;
+  --border: #2a2724;
+  --text: #e8e4df; /* warm off-white */
+  --text-muted: #8a8279; /* stone / taupe */
+  --accent: #c45c3e; /* burnt terracotta */
+  --accent-hover: #d56b4c;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+  --font-jp: var(--font-jp);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Visible, accent-colored focus rings for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
