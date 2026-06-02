@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
-import type { BrowseQuery } from "@/lib/anilist/gql/graphql";
+import type { SearchAnime } from "@/lib/supabase/search";
 
-type BrowsePage = NonNullable<BrowseQuery["Page"]>;
-
-async function searchAnime(term: string): Promise<BrowsePage> {
-  const res = await fetch(`/api/browse?search=${encodeURIComponent(term)}`);
+async function fetchSuggestions(
+  term: string,
+): Promise<{ results: SearchAnime[] }> {
+  const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
   if (!res.ok) throw new Error("Search failed");
   return res.json();
 }
@@ -24,13 +24,13 @@ export function SearchBox() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const id = setTimeout(() => setDebounced(term.trim()), 300);
+    const id = setTimeout(() => setDebounced(term.trim()), 250);
     return () => clearTimeout(id);
   }, [term]);
 
   const { data, isFetching } = useQuery({
-    queryKey: ["search", debounced],
-    queryFn: () => searchAnime(debounced),
+    queryKey: ["suggestions", debounced],
+    queryFn: () => fetchSuggestions(debounced),
     enabled: debounced.length >= 2,
     staleTime: 60_000,
   });
@@ -52,12 +52,10 @@ export function SearchBox() {
     const q = term.trim();
     if (!q) return;
     setOpen(false);
-    router.push(`/browse?search=${encodeURIComponent(q)}`);
+    router.push(`/search?q=${encodeURIComponent(q)}`);
   }
 
-  const results = (data?.media ?? [])
-    .filter((m): m is NonNullable<typeof m> => Boolean(m))
-    .slice(0, 6);
+  const results = (data?.results ?? []).slice(0, 6);
   const showDropdown = open && debounced.length >= 2;
 
   return (
@@ -99,11 +97,12 @@ export function SearchBox() {
           ) : (
             <ul className="max-h-[70vh] overflow-y-auto">
               {results.map((m) => {
-                const title = m.title?.english ?? m.title?.romaji ?? "Untitled";
+                const title =
+                  m.title_english ?? m.title_romaji ?? "Untitled";
                 return (
-                  <li key={m.id}>
+                  <li key={m.anilist_id}>
                     <Link
-                      href={`/anime/${m.id}`}
+                      href={`/anime/${m.anilist_id}`}
                       onClick={() => {
                         setOpen(false);
                         setTerm("");
@@ -111,20 +110,23 @@ export function SearchBox() {
                       className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-surface-hover"
                     >
                       <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded bg-surface">
-                        {m.coverImage?.large && (
+                        {m.cover_image && (
                           <Image
-                            src={m.coverImage.large}
+                            src={m.cover_image}
                             alt=""
                             fill
                             sizes="36px"
                             className="object-cover"
+                            unoptimized
                           />
                         )}
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm text-text">{title}</p>
                         <p className="text-xs text-text-muted">
-                          {[m.format, m.seasonYear].filter(Boolean).join(" · ")}
+                          {[m.format, m.season_year]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </p>
                       </div>
                     </Link>

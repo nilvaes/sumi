@@ -41,8 +41,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${display.variable} ${body.variable} ${jp.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <Providers>
           <SiteNav />
           <main className="flex-1">{children}</main>

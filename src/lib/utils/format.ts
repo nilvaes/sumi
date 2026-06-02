@@ -21,7 +21,9 @@ const STATUS_LABELS: Record<string, string> = {
   HIATUS: "Hiatus",
 };
 
-export function formatLabel(format?: MediaFormat | null): string | null {
+export function formatLabel(
+  format?: MediaFormat | string | null,
+): string | null {
   return format ? (FORMAT_LABELS[format] ?? format) : null;
 }
 

@@ -14,7 +14,7 @@ export const MediaCardFields = graphql(`
       english
     }
     coverImage {
-      large
+      extraLarge
       color
     }
     format
@@ -39,7 +39,7 @@ export const HeroFields = graphql(`
     }
     bannerImage
     coverImage {
-      large
+      extraLarge
       color
     }
     description(asHtml: false)
@@ -53,12 +53,17 @@ export const HeroFields = graphql(`
   }
 `);
 
+/*
+  Hero spotlight: top 8 by popularity among airing shows from the current season
+  year only (no fixed score floor — "good" = makes the popular cut for new cours).
+*/
 export const HomeQuery = graphql(`
-  query Home {
-    featured: Page(page: 1, perPage: 6) {
+  query Home($heroYear: Int!) {
+    featured: Page(page: 1, perPage: 8) {
       media(
         status: RELEASING
-        sort: TRENDING_DESC
+        seasonYear: $heroYear
+        sort: POPULARITY_DESC
         type: ANIME
         isAdult: false
       ) {

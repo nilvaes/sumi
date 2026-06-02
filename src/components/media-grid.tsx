@@ -1,10 +1,15 @@
-import { AnimeCard } from "./anime-card";
-import type { MediaCardFieldsFragment } from "@/lib/anilist/gql/graphql";
+import { AnimeCard, type CardMedia } from "./anime-card";
 
-type MediaItem = MediaCardFieldsFragment | null;
+type MediaItem = CardMedia | null;
 
-export function MediaGrid({ items }: { items: readonly MediaItem[] }) {
-  const media = items.filter((m): m is MediaCardFieldsFragment => m !== null);
+export function MediaGrid({
+  items,
+  unoptimized = false,
+}: {
+  items: readonly MediaItem[];
+  unoptimized?: boolean;
+}) {
+  const media = items.filter((m): m is CardMedia => m !== null);
 
   if (media.length === 0) {
     return (
@@ -17,7 +22,7 @@ export function MediaGrid({ items }: { items: readonly MediaItem[] }) {
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
       {media.map((m) => (
-        <AnimeCard key={m.id} media={m} />
+        <AnimeCard key={m.id} media={m} unoptimized={unoptimized} />
       ))}
     </div>
   );

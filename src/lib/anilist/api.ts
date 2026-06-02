@@ -1,11 +1,16 @@
 import { anilistRequest } from "./client";
 import { AnimeDetailQuery, BrowseQuery, HomeQuery, ScheduleQuery } from "./queries";
-import type { BrowseFilters } from "./filters";
+import type { BrowseFilters } from "@/lib/anilist/filters";
 
 const HOUR = 3600;
 
+/** Current calendar year — hero only shows this season year's cours. */
+export function currentSeasonYear() {
+  return new Date().getFullYear();
+}
+
 export function getHome() {
-  return anilistRequest(HomeQuery, undefined, 3 * HOUR);
+  return anilistRequest(HomeQuery, { heroYear: currentSeasonYear() }, 3 * HOUR);
 }
 
 export function getAnimeDetail(id: number) {
@@ -37,4 +42,49 @@ export function getBrowse(filters: BrowseFilters, page = 1) {
 
 export function getSchedule(start: number, end: number, page = 1) {
   return anilistRequest(ScheduleQuery, { start, end, page }, HOUR);
+}
+
+export type ScheduleEntry = {
+  id: number;
+  airingAt: number;
+  episode: number;
+  media: {
+    id: number;
+    title?: { romaji?: string | null; english?: string | null } | null;
+    coverImage?: { large?: string | null; color?: string | null } | null;
+    format?: string | null;
+  };
+};
+
+/**
+ * All non-adult episodes airing in the next 7 days, flattened and time-sorted.
+ * Paginates a few times (50/page) which is plenty for one week; capped so a busy
+ * week can't fan out into many AniList calls.
+ */
+export async function getWeekSchedule(): Promise<ScheduleEntry[]> {
+  const start = Math.floor(Date.now() / 1000);
+  const end = start + 7 * 24 * HOUR;
+  const MAX_PAGES = 6;
+
+  const entries: ScheduleEntry[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const data = await getSchedule(start, end, page);
+    const schedules = data.Page?.airingSchedules ?? [];
+    for (const s of schedules) {
+      if (!s?.media || s.media.isAdult) continue;
+      entries.push({
+        id: s.id,
+        airingAt: s.airingAt,
+        episode: s.episode,
+        media: {
+          id: s.media.id,
+          title: s.media.title,
+          coverImage: s.media.coverImage,
+          format: s.media.format,
+        },
+      });
+    }
+    if (!data.Page?.pageInfo?.hasNextPage) break;
+  }
+  return entries;
 }

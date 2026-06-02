@@ -5,11 +5,11 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
-        <Link href="/" className="flex items-baseline gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <span className="font-serif text-2xl tracking-tight text-text">
             Sumi
           </span>
-          <span className="hidden font-jp text-sm text-text-muted sm:inline">
+          <span className="font-jp text-2xl leading-none text-text-muted">
             墨
           </span>
         </Link>
@@ -18,12 +18,20 @@ export function SiteNav() {
           <SearchBox />
         </div>
 
-        <Link
-          href="/browse"
-          className="shrink-0 text-sm text-text-muted transition-colors hover:text-text"
-        >
-          Browse
-        </Link>
+        <div className="flex shrink-0 items-center gap-4 sm:gap-6">
+          <Link
+            href="/browse"
+            className="text-sm text-text-muted transition-colors hover:text-text"
+          >
+            Browse
+          </Link>
+          <Link
+            href="/schedule"
+            className="text-sm text-text-muted transition-colors hover:text-text"
+          >
+            Schedule
+          </Link>
+        </div>
       </nav>
     </header>
   );

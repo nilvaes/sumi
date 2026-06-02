@@ -1,11 +1,36 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { MediaCardFieldsFragment } from "@/lib/anilist/gql/graphql";
 import { formatCountdown } from "@/lib/utils/format";
 
-export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
+/** Minimal shape an anime card needs; AniList fragments satisfy this structurally. */
+export type CardMedia = {
+  id: number;
+  title?: { romaji?: string | null; english?: string | null } | null;
+  coverImage?: {
+    large?: string | null;
+    extraLarge?: string | null;
+    color?: string | null;
+  } | null;
+  format?: string | null;
+  seasonYear?: number | null;
+  nextAiringEpisode?: {
+    episode: number;
+    airingAt: number;
+    timeUntilAiring: number;
+  } | null;
+};
+
+export function AnimeCard({
+  media,
+  unoptimized = false,
+}: {
+  media: CardMedia;
+  /** Skip the Next image optimizer (used for search results from arbitrary CDNs). */
+  unoptimized?: boolean;
+}) {
   const title = media.title?.english ?? media.title?.romaji ?? "Untitled";
-  const cover = media.coverImage?.large;
+  const cover =
+    media.coverImage?.extraLarge ?? media.coverImage?.large;
   const next = media.nextAiringEpisode;
 
   return (
@@ -20,7 +45,9 @@ export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
             alt={title}
             fill
             sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 180px"
+            quality={90}
             className="object-cover"
+            unoptimized={unoptimized}
           />
         ) : (
           <div className="flex h-full items-center justify-center font-jp text-3xl text-text-muted">
