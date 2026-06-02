@@ -1,11 +1,9 @@
 import { getHome } from "@/lib/anilist/api";
 import { MediaGrid } from "@/components/media-grid";
 import { Section } from "@/components/section";
-import { getCurrentSeason, formatSeason } from "@/lib/utils/season";
 
 export default async function HomePage() {
   const data = await getHome();
-  const { season, year } = getCurrentSeason();
 
   return (
     <div className="mx-auto max-w-6xl space-y-16 px-4 py-12">
@@ -14,24 +12,22 @@ export default async function HomePage() {
           Discover the season.
         </h1>
         <p className="text-text-muted">
-          Browse trending, popular, and seasonal anime. Sumi pulls live data
-          from AniList with a clean, content-first interface.
+          Browse what&apos;s airing now, what&apos;s trending, and what&apos;s
+          coming next. Sumi pulls live data from AniList with a clean,
+          content-first interface.
         </p>
       </header>
+
+      <Section title="Airing now">
+        <MediaGrid items={data.airing?.media ?? []} />
+      </Section>
 
       <Section title="Trending now">
         <MediaGrid items={data.trending?.media ?? []} />
       </Section>
 
-      <Section
-        title={`${formatSeason(season)} ${year}`}
-        href={`/season/${year}/${season.toLowerCase()}`}
-      >
-        <MediaGrid items={data.seasonal?.media ?? []} />
-      </Section>
-
-      <Section title="All-time popular">
-        <MediaGrid items={data.popular?.media ?? []} />
+      <Section title="Upcoming">
+        <MediaGrid items={data.upcoming?.media ?? []} />
       </Section>
     </div>
   );

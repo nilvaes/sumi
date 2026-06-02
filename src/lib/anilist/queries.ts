@@ -31,16 +31,10 @@ export const MediaCardFields = graphql(`
 `);
 
 export const HomeQuery = graphql(`
-  query Home($season: MediaSeason, $seasonYear: Int) {
-    trending: Page(page: 1, perPage: 12) {
-      media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
-        ...MediaCardFields
-      }
-    }
-    seasonal: Page(page: 1, perPage: 12) {
+  query Home {
+    airing: Page(page: 1, perPage: 12) {
       media(
-        season: $season
-        seasonYear: $seasonYear
+        status: RELEASING
         sort: POPULARITY_DESC
         type: ANIME
         isAdult: false
@@ -48,8 +42,18 @@ export const HomeQuery = graphql(`
         ...MediaCardFields
       }
     }
-    popular: Page(page: 1, perPage: 12) {
-      media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+    trending: Page(page: 1, perPage: 12) {
+      media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+        ...MediaCardFields
+      }
+    }
+    upcoming: Page(page: 1, perPage: 12) {
+      media(
+        status: NOT_YET_RELEASED
+        sort: POPULARITY_DESC
+        type: ANIME
+        isAdult: false
+      ) {
         ...MediaCardFields
       }
     }

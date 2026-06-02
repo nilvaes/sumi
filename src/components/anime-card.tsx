@@ -12,7 +12,7 @@ export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
       href={`/anime/${media.id}`}
       className="group flex flex-col gap-2 transition-transform duration-200 hover:-translate-y-1"
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-md border border-border bg-surface">
+      <div className="relative aspect-2/3 overflow-hidden rounded-md border border-border bg-surface">
         {cover ? (
           <Image
             src={cover}

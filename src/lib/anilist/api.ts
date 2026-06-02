@@ -6,18 +6,12 @@ import {
   SearchQuery,
   SeasonQuery,
 } from "./queries";
-import type {
-  MediaFormat,
-  MediaSeason,
-  MediaSort,
-} from "./gql/graphql";
-import { getCurrentSeason } from "@/lib/utils/season";
+import type { MediaFormat, MediaSeason, MediaSort } from "./gql/graphql";
 
 const HOUR = 3600;
 
 export function getHome() {
-  const { season, year } = getCurrentSeason();
-  return anilistRequest(HomeQuery, { season, seasonYear: year }, 6 * HOUR);
+  return anilistRequest(HomeQuery, undefined, 3 * HOUR);
 }
 
 export function getAnimeDetail(id: number) {

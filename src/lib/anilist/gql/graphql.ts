@@ -128,13 +128,10 @@ export type MediaType =
 
 export type MediaCardFieldsFragment = { id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null };
 
-export type HomeQueryVariables = Exact<{
-  season?: MediaSeason | null | undefined;
-  seasonYear?: number | null | undefined;
-}>;
+export type HomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HomeQuery = { trending: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, seasonal: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, popular: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
+export type HomeQuery = { airing: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, trending: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null, upcoming: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
 
 export type AnimeDetailQueryVariables = Exact<{
   id: number;
@@ -214,25 +211,24 @@ export const MediaCardFieldsFragmentDoc = new TypedDocumentString(`
 }
     `, {"fragmentName":"MediaCardFields"}) as unknown as TypedDocumentString<MediaCardFieldsFragment, unknown>;
 export const HomeDocument = new TypedDocumentString(`
-    query Home($season: MediaSeason, $seasonYear: Int) {
+    query Home {
+  airing: Page(page: 1, perPage: 12) {
+    media(status: RELEASING, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+      ...MediaCardFields
+    }
+  }
   trending: Page(page: 1, perPage: 12) {
     media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
       ...MediaCardFields
     }
   }
-  seasonal: Page(page: 1, perPage: 12) {
+  upcoming: Page(page: 1, perPage: 12) {
     media(
-      season: $season
-      seasonYear: $seasonYear
+      status: NOT_YET_RELEASED
       sort: POPULARITY_DESC
       type: ANIME
       isAdult: false
     ) {
-      ...MediaCardFields
-    }
-  }
-  popular: Page(page: 1, perPage: 12) {
-    media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
       ...MediaCardFields
     }
   }
