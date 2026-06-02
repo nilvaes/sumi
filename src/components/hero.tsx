@@ -56,7 +56,7 @@ export function Hero({
       <div className="relative flex h-full flex-col justify-end gap-3 p-6 sm:max-w-2xl sm:p-10">
         {active.nextAiringEpisode && (
           <p className="flex items-center gap-2 text-sm text-text-muted">
-            <span aria-hidden className="size-1.5 rounded-full bg-accent" />
+            <span aria-hidden className="size-1.5 rounded-full bg-brand" />
             Episode {active.nextAiringEpisode.episode} in{" "}
             {formatCountdown(active.nextAiringEpisode.timeUntilAiring)}
           </p>
@@ -88,7 +88,7 @@ export function Hero({
         <div className="flex items-center gap-4 pt-1">
           <Link
             href={`/anime/${active.id}`}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
           >
             View details
           </Link>
@@ -104,7 +104,7 @@ export function Hero({
                   aria-current={i === index}
                   className={`h-1.5 rounded-full transition-all ${
                     i === index
-                      ? "w-6 bg-accent"
+                      ? "w-6 bg-brand"
                       : "w-1.5 bg-text-muted/50 hover:bg-text-muted"
                   }`}
                 />

@@ -123,7 +123,7 @@ export default async function AnimeDetailPage({ params }: Params) {
                             href={link.url ?? "#"}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-block rounded border border-border bg-surface px-2.5 py-1 text-xs text-text-muted transition-colors hover:border-accent hover:text-text"
+                            className="inline-block rounded border border-border bg-surface px-2.5 py-1 text-xs text-text-muted transition-colors hover:border-brand hover:text-text"
                           >
                             {link.site}
                           </a>
@@ -151,7 +151,7 @@ export default async function AnimeDetailPage({ params }: Params) {
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
               {score && (
-                <span className="font-medium text-accent">★ {score}</span>
+                <span className="font-medium text-brand">★ {score}</span>
               )}
               {meta.map((item, i) => (
                 <span key={i} className="flex items-center gap-3">
@@ -235,7 +235,7 @@ export default async function AnimeDetailPage({ params }: Params) {
         <div className="mt-12">
           <Link
             href="/"
-            className="text-sm text-text-muted transition-colors hover:text-accent"
+            className="text-sm text-text-muted transition-colors hover:text-brand"
           >
             ← Back to browse
           </Link>

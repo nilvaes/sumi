@@ -32,7 +32,7 @@ export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
             <span className="flex items-center gap-1.5">
               <span
                 aria-hidden
-                className="size-1.5 rounded-full bg-accent"
+                className="size-1.5 rounded-full bg-brand"
               />
               EP {next.episode}
             </span>
@@ -43,7 +43,7 @@ export function AnimeCard({ media }: { media: MediaCardFieldsFragment }) {
         )}
       </div>
       <div className="space-y-0.5">
-        <h3 className="line-clamp-2 text-sm leading-snug text-text transition-colors group-hover:text-accent">
+        <h3 className="line-clamp-2 text-sm leading-snug text-text transition-colors group-hover:text-brand">
           {title}
         </h3>
         <p className="text-xs text-text-muted">

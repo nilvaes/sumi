@@ -1,31 +1,82 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*
   Sumi — warm dark editorial theme.
-  One accent only (burnt terracotta). No purple/cyan, no glassmorphism.
-  Source tokens are semantic so a future light theme / accent swap is a one-line change.
+  - Brand color (terracotta) lives in its own `brand` token so it never collides
+    with shadcn/ui's neutral `accent` (a subtle hover background).
+  - shadcn tokens are mapped onto the Sumi palette so generated components inherit
+    our ink/terracotta look instead of the default neutral grays.
 */
 
 :root {
+  /* Sumi palette */
   --bg: #0f0e0d; /* warm near-black */
   --surface: #1a1816; /* lifted card */
   --surface-hover: #221f1c;
-  --border: #2a2724;
+  --border-color: #2a2724;
   --text: #e8e4df; /* warm off-white */
   --text-muted: #8a8279; /* stone / taupe */
-  --accent: #c45c3e; /* burnt terracotta */
-  --accent-hover: #d56b4c;
+  --brand: #c45c3e; /* burnt terracotta */
+  --brand-hover: #d56b4c;
+
+  /* shadcn/ui tokens → Sumi palette */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-hover);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-hover); /* shadcn hover bg — NOT the brand color */
+  --accent-foreground: var(--text);
+  --destructive: #b3402e;
+  --destructive-foreground: #ffffff;
+  --input: var(--border-color);
+  --ring: var(--brand);
+  --radius: 0.5rem;
 }
 
 @theme inline {
+  /* Sumi semantic tokens */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
-  --color-border: var(--border);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+
+  /* shadcn tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border-color);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: var(--font-body);
   --font-serif: var(--font-display);
@@ -33,7 +84,7 @@
 }
 
 * {
-  border-color: var(--border);
+  border-color: var(--border-color);
 }
 
 body {
@@ -44,12 +95,12 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--brand);
   color: #fff;
 }
 
-/* Visible, accent-colored focus rings for keyboard users. */
+/* Visible, brand-colored focus rings for keyboard users. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }

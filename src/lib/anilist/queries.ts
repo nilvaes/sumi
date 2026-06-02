@@ -158,14 +158,16 @@ export const AnimeDetailQuery = graphql(`
   }
 `);
 
-export const SeasonQuery = graphql(`
-  query Season(
+export const BrowseQuery = graphql(`
+  query Browse(
+    $page: Int = 1
+    $sort: [MediaSort] = [POPULARITY_DESC]
+    $status: MediaStatus
     $season: MediaSeason
     $seasonYear: Int
-    $page: Int = 1
-    $genres: [String]
+    $genre: String
     $format: MediaFormat
-    $sort: [MediaSort] = [POPULARITY_DESC]
+    $search: String
   ) {
     Page(page: $page, perPage: 24) {
       pageInfo {
@@ -173,28 +175,16 @@ export const SeasonQuery = graphql(`
         currentPage
       }
       media(
+        sort: $sort
+        status: $status
         season: $season
         seasonYear: $seasonYear
-        genre_in: $genres
+        genre: $genre
         format: $format
-        sort: $sort
+        search: $search
         type: ANIME
         isAdult: false
       ) {
-        ...MediaCardFields
-      }
-    }
-  }
-`);
-
-export const SearchQuery = graphql(`
-  query Search($search: String!, $page: Int = 1) {
-    Page(page: $page, perPage: 24) {
-      pageInfo {
-        hasNextPage
-        currentPage
-      }
-      media(search: $search, type: ANIME, sort: SEARCH_MATCH, isAdult: false) {
         ...MediaCardFields
       }
     }

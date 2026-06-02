@@ -12,7 +12,7 @@ export function SiteFooter() {
             href="https://anilist.co"
             target="_blank"
             rel="noreferrer"
-            className="text-accent hover:text-accent-hover"
+            className="text-brand hover:text-brand-hover"
           >
             AniList
           </a>

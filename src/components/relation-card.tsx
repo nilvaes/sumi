@@ -27,7 +27,7 @@ export function RelationCard({
       </div>
       <div className="min-w-0 space-y-1 py-1">
         {label && (
-          <p className="text-xs uppercase tracking-wide text-accent">{label}</p>
+          <p className="text-xs uppercase tracking-wide text-brand">{label}</p>
         )}
         <p className="line-clamp-2 text-sm leading-snug text-text">{title}</p>
       </div>

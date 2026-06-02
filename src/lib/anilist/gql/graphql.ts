@@ -142,25 +142,19 @@ export type AnimeDetailQueryVariables = Exact<{
 
 export type AnimeDetailQuery = { Media: { id: number, description: string | null, bannerImage: string | null, format: MediaFormat | null, status: MediaStatus | null, episodes: number | null, duration: number | null, season: MediaSeason | null, seasonYear: number | null, averageScore: number | null, meanScore: number | null, popularity: number | null, favourites: number | null, genres: Array<string | null> | null, title: { romaji: string | null, english: string | null, native: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, studios: { nodes: Array<{ id: number, name: string } | null> | null } | null, trailer: { id: string | null, site: string | null } | null, externalLinks: Array<{ id: number, url: string | null, site: string } | null> | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null, relations: { edges: Array<{ relationType: MediaRelation | null, node: { id: number, type: MediaType | null, title: { romaji: string | null } | null, coverImage: { large: string | null } | null } | null } | null> | null } | null } | null };
 
-export type SeasonQueryVariables = Exact<{
+export type BrowseQueryVariables = Exact<{
+  page?: number | null | undefined;
+  sort?: Array<MediaSort | null | undefined> | MediaSort | null | undefined;
+  status?: MediaStatus | null | undefined;
   season?: MediaSeason | null | undefined;
   seasonYear?: number | null | undefined;
-  page?: number | null | undefined;
-  genres?: Array<string | null | undefined> | string | null | undefined;
+  genre?: string | null | undefined;
   format?: MediaFormat | null | undefined;
-  sort?: Array<MediaSort | null | undefined> | MediaSort | null | undefined;
+  search?: string | null | undefined;
 }>;
 
 
-export type SeasonQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
-
-export type SearchQueryVariables = Exact<{
-  search: string;
-  page?: number | null | undefined;
-}>;
-
-
-export type SearchQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
+export type BrowseQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
 
 export type ScheduleQueryVariables = Exact<{
   start: number;
@@ -367,19 +361,21 @@ export const AnimeDetailDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<AnimeDetailQuery, AnimeDetailQueryVariables>;
-export const SeasonDocument = new TypedDocumentString(`
-    query Season($season: MediaSeason, $seasonYear: Int, $page: Int = 1, $genres: [String], $format: MediaFormat, $sort: [MediaSort] = [POPULARITY_DESC]) {
+export const BrowseDocument = new TypedDocumentString(`
+    query Browse($page: Int = 1, $sort: [MediaSort] = [POPULARITY_DESC], $status: MediaStatus, $season: MediaSeason, $seasonYear: Int, $genre: String, $format: MediaFormat, $search: String) {
   Page(page: $page, perPage: 24) {
     pageInfo {
       hasNextPage
       currentPage
     }
     media(
+      sort: $sort
+      status: $status
       season: $season
       seasonYear: $seasonYear
-      genre_in: $genres
+      genre: $genre
       format: $format
-      sort: $sort
+      search: $search
       type: ANIME
       isAdult: false
     ) {
@@ -407,40 +403,7 @@ export const SeasonDocument = new TypedDocumentString(`
     airingAt
     timeUntilAiring
   }
-}`) as unknown as TypedDocumentString<SeasonQuery, SeasonQueryVariables>;
-export const SearchDocument = new TypedDocumentString(`
-    query Search($search: String!, $page: Int = 1) {
-  Page(page: $page, perPage: 24) {
-    pageInfo {
-      hasNextPage
-      currentPage
-    }
-    media(search: $search, type: ANIME, sort: SEARCH_MATCH, isAdult: false) {
-      ...MediaCardFields
-    }
-  }
-}
-    fragment MediaCardFields on Media {
-  id
-  title {
-    romaji
-    english
-  }
-  coverImage {
-    large
-    color
-  }
-  format
-  averageScore
-  seasonYear
-  genres
-  episodes
-  nextAiringEpisode {
-    episode
-    airingAt
-    timeUntilAiring
-  }
-}`) as unknown as TypedDocumentString<SearchQuery, SearchQueryVariables>;
+}`) as unknown as TypedDocumentString<BrowseQuery, BrowseQueryVariables>;
 export const ScheduleDocument = new TypedDocumentString(`
     query Schedule($start: Int!, $end: Int!, $page: Int = 1) {
   Page(page: $page, perPage: 50) {

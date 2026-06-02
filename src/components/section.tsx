@@ -16,7 +16,7 @@ export function Section({
         {href && (
           <Link
             href={href}
-            className="text-sm text-text-muted transition-colors hover:text-accent"
+            className="text-sm text-text-muted transition-colors hover:text-brand"
           >
             View all
           </Link>

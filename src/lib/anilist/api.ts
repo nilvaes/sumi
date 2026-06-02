@@ -1,12 +1,6 @@
 import { anilistRequest } from "./client";
-import {
-  AnimeDetailQuery,
-  HomeQuery,
-  ScheduleQuery,
-  SearchQuery,
-  SeasonQuery,
-} from "./queries";
-import type { MediaFormat, MediaSeason, MediaSort } from "./gql/graphql";
+import { AnimeDetailQuery, BrowseQuery, HomeQuery, ScheduleQuery } from "./queries";
+import type { BrowseFilters } from "./filters";
 
 const HOUR = 3600;
 
@@ -18,30 +12,27 @@ export function getAnimeDetail(id: number) {
   return anilistRequest(AnimeDetailQuery, { id }, 24 * HOUR);
 }
 
-export function getSeason(params: {
-  season: MediaSeason;
-  seasonYear: number;
-  page?: number;
-  genres?: string[];
-  format?: MediaFormat;
-  sort?: MediaSort[];
-}) {
-  return anilistRequest(
-    SeasonQuery,
-    {
-      season: params.season,
-      seasonYear: params.seasonYear,
-      page: params.page ?? 1,
-      genres: params.genres,
-      format: params.format,
-      sort: params.sort ?? ["POPULARITY_DESC"],
-    },
-    6 * HOUR,
-  );
-}
+export function getBrowse(filters: BrowseFilters, page = 1) {
+  // When searching with the default sort, rank by relevance instead of popularity.
+  const sort =
+    filters.search && filters.sort === "POPULARITY_DESC"
+      ? "SEARCH_MATCH"
+      : filters.sort;
 
-export function searchAnime(search: string, page = 1) {
-  return anilistRequest(SearchQuery, { search, page }, HOUR);
+  return anilistRequest(
+    BrowseQuery,
+    {
+      page,
+      sort: [sort],
+      status: filters.status,
+      season: filters.season,
+      seasonYear: filters.year,
+      genre: filters.genre,
+      format: filters.format,
+      search: filters.search,
+    },
+    HOUR,
+  );
 }
 
 export function getSchedule(start: number, end: number, page = 1) {
