@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BrowseControls } from "@/components/browse/browse-controls";
-import { BrowseResults } from "@/components/browse/browse-results";
-import { getBrowse } from "@/lib/anilist/api";
+import { BrowseResultsServer } from "@/components/browse/browse-results-server";
+import { MediaGridSkeleton } from "@/components/media-grid";
 import { browseHeading, parseBrowseFilters } from "@/lib/anilist/filters";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -21,7 +22,6 @@ export default async function BrowsePage({
   searchParams: SearchParams;
 }) {
   const filters = parseBrowseFilters(await searchParams);
-  const data = await getBrowse(filters, 1);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
@@ -29,7 +29,9 @@ export default async function BrowsePage({
         {browseHeading(filters)}
       </h1>
       <BrowseControls filters={filters} />
-      <BrowseResults filters={filters} initialPage={data.Page} />
+      <Suspense fallback={<MediaGridSkeleton count={24} />}>
+        <BrowseResultsServer filters={filters} />
+      </Suspense>
     </div>
   );
 }
