@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Newsreader, IBM_Plex_Sans, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { ScrollToTopOnNav } from "@/components/scroll-to-top-on-nav";
 import { Providers } from "./providers";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -52,6 +53,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <Providers>
+          <ScrollToTopOnNav />
           <SiteNav />
           <main className="flex-1">{children}</main>
           <SiteFooter />
