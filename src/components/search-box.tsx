@@ -103,6 +103,7 @@ export function SearchBox() {
                   <li key={m.anilist_id}>
                     <Link
                       href={`/anime/${m.anilist_id}`}
+                      prefetch
                       onClick={() => {
                         setOpen(false);
                         setTerm("");

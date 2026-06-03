@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
+import { SetAnimeDocumentTitle } from "./set-anime-document-title";
 import { DETAIL_FADE_MS, FadeIn } from "./fade-in";
 
 type Props = {
@@ -40,6 +41,7 @@ export function AnimeDetailMedia({
 
   return (
     <article>
+      <SetAnimeDocumentTitle title={title} />
       <div className="relative h-48 w-full overflow-hidden bg-surface sm:h-64 md:h-80">
         {bannerUrl ? (
           <Image

@@ -38,7 +38,7 @@ export function RelationCard({
     "rounded-md border border-border bg-surface p-2 transition-colors hover:bg-surface-hover";
 
   return isAnime ? (
-    <Link href={`/anime/${id}`} className={`block ${className}`}>
+    <Link href={`/anime/${id}`} prefetch className={`block ${className}`}>
       {inner}
     </Link>
   ) : (

@@ -127,6 +127,7 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
                 <li key={e.id}>
                   <Link
                     href={`/anime/${e.media.id}`}
+                    prefetch
                     className="flex items-center gap-4 bg-surface/40 px-4 py-3 transition-colors hover:bg-surface-hover"
                   >
                     <time className="w-16 shrink-0 text-sm tabular-nums text-text-muted">
