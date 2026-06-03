@@ -7,7 +7,7 @@ home spotlight, filtered browse, airing schedule, and anime detail pages — pow
 by [AniList](https://anilist.co) live data, with fast partial search backed by
 Supabase and an openly licensed offline catalog.
 
-**Live demo:** _(will put vercel link soon)_
+**Live demo:** [_(will put vercel link soon)_](https://sumi-xi.vercel.app/)
 
 Full product plan: [`docs/project-brief.md`](prob not gonna deploy it.)
 
