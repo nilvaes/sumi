@@ -98,7 +98,8 @@ npm run sync
 ```
 
 Downloads the latest weekly dataset release and upserts anime with AniList IDs
-(~1 minute). Re-run periodically to refresh titles (manual today; cron later).
+(~1 minute). Re-run periodically to refresh titles. A scheduled
+[GitHub Action](#automated-weekly-sync) can do this for you.
 
 ### 5. Run locally
 
@@ -168,9 +169,42 @@ Click **Deploy**. Vercel builds and gives you a URL like `sumi-xxx.vercel.app`.
 
 Vercel → Project → **Settings → Domains** → add your domain and follow DNS instructions.
 
+## Performance & cold starts
+
+Sumi is deployed on Vercel's serverless platform. A few things worth knowing:
+
+- **Cold starts** — after a period of no traffic, the first request wakes the
+  serverless function and fetches fresh AniList data, so the initial load can
+  take a second or two. This is normal for serverless and not a bug.
+- **Warm navigation** — once warm, the app feels fast: routes stream a skeleton
+  immediately (`loading.tsx` + Suspense), anime links are prefetched on hover,
+  and AniList reads are cached with a `revalidate` window, so repeat visits are
+  near-instant.
+- **AniList rate limits** — all AniList traffic is funneled through one
+  server-side client (`src/lib/anilist/client.ts`) with request spacing and
+  `429` backoff, so navigation patterns never blow the upstream budget.
+
+## Automated weekly sync
+
+The search catalog is refreshed by a scheduled GitHub Action
+([`.github/workflows/sync.yml`](.github/workflows/sync.yml)) that runs
+`npm run sync:ci` once a week (and on-demand via the **Run workflow** button).
+
+Set these as **GitHub repository secrets**
+(Settings → Secrets and variables → Actions → New repository secret):
+
+| Secret | Value |
+|--------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service-role** key (server-only) |
+
+The service-role key lives only in GitHub's encrypted secrets and is never
+committed. To run the sync manually, open the **Actions** tab → **Weekly catalog
+sync** → **Run workflow**.
+
 ## Roadmap
 
-- **Phase 1:** browse/discover — **shipped** (deploy + README polish remaining)
+- **Phase 1:** browse/discover — **shipped**
 - **Phase 2:** AniList OAuth — personal lists (watching / completed / planning)
 - **Phase 3:** richer calendar, stats & insights
 
