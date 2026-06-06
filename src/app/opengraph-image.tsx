@@ -43,10 +43,17 @@ export default function OpengraphImage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          <div style={{ fontSize: "108px", lineHeight: 1.05, fontWeight: 600 }}>
-            Track &amp; Explore
-            <br />
-            New Anime
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "108px",
+              lineHeight: 1.05,
+              fontWeight: 600,
+            }}
+          >
+            <span>Track &amp; Explore</span>
+            <span>New Anime</span>
           </div>
           <div
             style={{
