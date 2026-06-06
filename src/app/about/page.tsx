@@ -61,6 +61,18 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-4">
+        <h2 className="font-serif text-2xl text-text">Performance notes</h2>
+        <p className="leading-relaxed text-text/90">
+          Sumi runs on Vercel&apos;s serverless platform. After a period of no
+          traffic, the first request can hit a <em>cold start</em> — the
+          function spins up and fetches fresh AniList data, so that initial load
+          may take a second or two. Once warm, navigation is fast: pages stream a
+          skeleton immediately, links are prefetched on hover, and AniList
+          responses are cached, so repeat visits feel instant.
+        </p>
+      </section>
+
+      <section className="space-y-4">
         <h2 className="font-serif text-2xl text-text">Stack</h2>
         <dl className="divide-y divide-border overflow-hidden rounded-md border border-border">
           {STACK.map((row) => (

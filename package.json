@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "codegen": "graphql-codegen --config codegen.ts",
     "sync": "node --env-file=.env.local --import tsx scripts/sync-anime.ts",
+    "sync:ci": "node --import tsx scripts/sync-anime.ts",
     "test": "vitest run"
   },
   "dependencies": {

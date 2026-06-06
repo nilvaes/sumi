@@ -25,7 +25,10 @@ const jp = Noto_Sans_JP({
   weight: ["400", "500"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sumi-xi.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Sumi — Track & Explore New Anime",
     template: "%s · Sumi",
@@ -33,10 +36,18 @@ export const metadata: Metadata = {
   description:
     "Browse airing and trending anime, search the full catalog, filter by genre and season, and see what's on this week — a calm, dark editorial discovery app.",
   openGraph: {
+    type: "website",
+    url: "/",
     title: "Sumi — Track & Explore New Anime",
     description:
       "Browse airing and trending anime, search the catalog, and check the weekly schedule.",
     siteName: "Sumi",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sumi — Track & Explore New Anime",
+    description:
+      "Browse airing and trending anime, search the catalog, and check the weekly schedule.",
   },
 };
 
