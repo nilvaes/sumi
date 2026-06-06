@@ -45,23 +45,21 @@ export function ScheduleEpisodeCard({
             墨
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 space-y-0.5 bg-bg/90 px-2 py-1.5 text-xs backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-2 text-text">
-            <time dateTime={new Date(entry.airingAt * 1000).toISOString()}>
+        <div className="absolute inset-x-0 bottom-0 flex items-start justify-between gap-2 bg-bg/90 px-2 py-1.5 text-xs backdrop-blur-sm">
+          <div className="min-w-0 space-y-0.5">
+            <time
+              dateTime={new Date(entry.airingAt * 1000).toISOString()}
+              className="block font-medium text-text"
+            >
               {timeLabel(entry.airingAt)}
             </time>
-            <span className="font-medium">Ep {entry.episode}</span>
+            <p className={aired ? "text-text-muted" : "text-brand"}>
+              {aired ? "Aired" : `${formatCountdown(secondsUntil)} left`}
+            </p>
           </div>
-          <p className="flex items-center gap-1.5 text-text-muted">
-            {aired ? (
-              "Aired"
-            ) : (
-              <>
-                <span aria-hidden className="size-1.5 rounded-full bg-brand" />
-                {formatCountdown(secondsUntil)}
-              </>
-            )}
-          </p>
+          <span className="shrink-0 font-medium text-text">
+            Ep {entry.episode}
+          </span>
         </div>
       </div>
       <div className="space-y-0.5">
