@@ -90,7 +90,11 @@ export type ScheduleEntry = {
   media: {
     id: number;
     title?: { romaji?: string | null; english?: string | null } | null;
-    coverImage?: { large?: string | null; color?: string | null } | null;
+    coverImage?: {
+      extraLarge?: string | null;
+      large?: string | null;
+      color?: string | null;
+    } | null;
     format?: string | null;
   };
 };

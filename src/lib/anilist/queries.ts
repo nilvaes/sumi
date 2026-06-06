@@ -218,6 +218,7 @@ export const ScheduleQuery = graphql(`
             english
           }
           coverImage {
+            extraLarge
             large
             color
           }
