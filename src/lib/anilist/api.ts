@@ -1,6 +1,7 @@
 import { anilistRequest } from "./client";
 import { AnimeDetailQuery, BrowseQuery, HomeQuery, ScheduleQuery } from "./queries";
 import type { BrowseFilters } from "@/lib/anilist/filters";
+import type { SearchAnime } from "@/lib/supabase/search";
 
 const HOUR = 3600;
 
@@ -42,6 +43,44 @@ export function getBrowse(filters: BrowseFilters, page = 1) {
 
 export function getSchedule(start: number, end: number, page = 1) {
   return anilistRequest(ScheduleQuery, { start, end, page }, HOUR);
+}
+
+/**
+ * Live AniList title search, mapped to the same shape as the Supabase catalog.
+ * Used as a fallback when the synced offline catalog has no rows for a query
+ * (e.g. a freshly-airing title the dataset hasn't picked up yet). AniList only
+ * matches whole words, so this complements — not replaces — the trigram search.
+ * Cached for an hour so a repeated query doesn't re-hit AniList.
+ */
+export async function searchAnilist(
+  query: string,
+  page = 1,
+): Promise<{ results: SearchAnime[]; hasNextPage: boolean }> {
+  const term = query.trim();
+  if (term.length < 2) return { results: [], hasNextPage: false };
+
+  const data = await anilistRequest(
+    BrowseQuery,
+    { page, sort: ["SEARCH_MATCH"], search: term },
+    HOUR,
+  );
+
+  const results: SearchAnime[] = (data.Page?.media ?? [])
+    .filter((m): m is NonNullable<typeof m> => Boolean(m))
+    .map((m) => ({
+      anilist_id: m.id,
+      title_romaji: m.title?.romaji ?? null,
+      title_english: m.title?.english ?? null,
+      cover_image: m.coverImage?.extraLarge ?? null,
+      cover_color: m.coverImage?.color ?? null,
+      format: m.format ?? null,
+      season_year: m.seasonYear ?? null,
+    }));
+
+  return {
+    results,
+    hasNextPage: data.Page?.pageInfo?.hasNextPage ?? false,
+  };
 }
 
 export type ScheduleEntry = {
