@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import type { ScheduleEntry } from "@/lib/anilist/api";
-import { formatCountdown, formatLabel } from "@/lib/utils/format";
+import { ScheduleEpisodeCard } from "./schedule-episode-card";
 
 type DayGroup = { key: string; date: Date; entries: ScheduleEntry[] };
 
@@ -65,13 +63,6 @@ function dayLabel(date: Date, now: Date): string {
   return weekday;
 }
 
-function timeLabel(airingAt: number): string {
-  return new Date(airingAt * 1000).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
   const now = useNow();
 
@@ -89,12 +80,19 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
 
   if (now === null) {
     return (
-      <div className="space-y-3" aria-hidden>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-16 animate-pulse rounded-md border border-border bg-surface"
-          />
+      <div className="space-y-16" aria-hidden>
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="space-y-5">
+            <div className="h-8 w-48 animate-pulse rounded bg-surface" />
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {Array.from({ length: 6 }).map((_, j) => (
+                <div key={j} className="flex flex-col gap-2">
+                  <div className="aspect-2/3 animate-pulse rounded-md bg-surface" />
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-surface" />
+                </div>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -111,61 +109,18 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
   const nowDate = new Date(now);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-16">
       {groups.map((group) => (
-        <section key={group.key} className="space-y-3">
-          <h2 className="sticky top-[57px] z-10 -mx-4 bg-bg/90 px-4 py-2 font-serif text-xl text-text backdrop-blur">
+        <section key={group.key} className="space-y-5">
+          <h2 className="font-serif text-2xl text-text">
             {dayLabel(group.date, nowDate)}
           </h2>
-          <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
-            {group.entries.map((e) => {
-              const title =
-                e.media.title?.english ?? e.media.title?.romaji ?? "Untitled";
-              const cover = e.media.coverImage?.large;
-              const secondsUntil = e.airingAt - Math.floor(now / 1000);
-              return (
-                <li key={e.id}>
-                  <Link
-                    href={`/anime/${e.media.id}`}
-                    prefetch
-                    className="flex items-center gap-4 bg-surface/40 px-4 py-3 transition-colors hover:bg-surface-hover"
-                  >
-                    <time className="w-16 shrink-0 text-sm tabular-nums text-text-muted">
-                      {timeLabel(e.airingAt)}
-                    </time>
-                    <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded bg-surface">
-                      {cover && (
-                        <Image
-                          src={cover}
-                          alt=""
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-text">{title}</p>
-                      <p className="text-xs text-text-muted">
-                        {[`Episode ${e.episode}`, formatLabel(e.media.format)]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-xs text-text-muted">
-                      {secondsUntil > 0 ? (
-                        <>
-                          <span className="mr-1 inline-block size-1.5 rounded-full bg-brand align-middle" />
-                          {formatCountdown(secondsUntil)}
-                        </>
-                      ) : (
-                        "Aired"
-                      )}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {group.entries.map((e) => (
+              <li key={e.id}>
+                <ScheduleEpisodeCard entry={e} nowMs={now} />
+              </li>
+            ))}
           </ul>
         </section>
       ))}

@@ -11,7 +11,7 @@ export default async function SchedulePage() {
   const entries = await getWeekSchedule();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
+    <div className="mx-auto max-w-6xl space-y-10 px-4 py-10">
       <header className="space-y-1">
         <h1 className="font-serif text-3xl text-text sm:text-4xl">
           Airing schedule

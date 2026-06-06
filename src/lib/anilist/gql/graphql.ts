@@ -165,7 +165,7 @@ export type ScheduleQueryVariables = Exact<{
 }>;
 
 
-export type ScheduleQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, airingSchedules: Array<{ id: number, airingAt: number, episode: number, media: { id: number, format: MediaFormat | null, isAdult: boolean | null, title: { romaji: string | null, english: string | null } | null, coverImage: { large: string | null, color: string | null } | null } | null } | null> | null } | null };
+export type ScheduleQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, airingSchedules: Array<{ id: number, airingAt: number, episode: number, media: { id: number, format: MediaFormat | null, isAdult: boolean | null, title: { romaji: string | null, english: string | null } | null, coverImage: { extraLarge: string | null, large: string | null, color: string | null } | null } | null } | null> | null } | null };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -430,6 +430,7 @@ export const ScheduleDocument = new TypedDocumentString(`
           english
         }
         coverImage {
+          extraLarge
           large
           color
         }
