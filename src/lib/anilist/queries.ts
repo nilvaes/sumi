@@ -196,6 +196,17 @@ export const BrowseQuery = graphql(`
   }
 `);
 
+/** Newest anime ids for bounded catalog gap-fill (sync script only). */
+export const GapFillQuery = graphql(`
+  query GapFill($page: Int = 1) {
+    Page(page: $page, perPage: 50) {
+      media(sort: ID_DESC, type: ANIME, isAdult: false) {
+        ...MediaCardFields
+      }
+    }
+  }
+`);
+
 export const ScheduleQuery = graphql(`
   query Schedule($start: Int!, $end: Int!, $page: Int = 1) {
     Page(page: $page, perPage: 50) {
