@@ -44,8 +44,9 @@ Browser
   │
   └─ /api/search → Supabase (trigram index)
                         ▲
-                        │ npm run sync (weekly, manual or CI)
-              anime-offline-database (ODbL)
+                        │ npm run sync (weekly manami dump)
+                        │ npm run sync:gaps (bounded AniList top-up)
+              anime-offline-database (ODbL) + newest AniList ids
 ```
 
 **Why two data sources?**
@@ -58,7 +59,10 @@ Browser
   `scripts/sync-anime.ts` downloads the weekly
   [anime-offline-database](https://github.com/manami-project/anime-offline-database)
   release and upserts ~20k titles (with AniList IDs) into Postgres for fast
-  substring search. Detail pages still load live from AniList when you click a result.
+  substring search. `scripts/sync-anilist-gaps.ts` optionally tops up missing
+  recent titles (~150 newest anime max, stop when caught up, ~1–3 API calls/week).
+  Hybrid search still falls back to live AniList when the index misses a query.
+  Detail pages load live from AniList when you click a result.
 
 ## Getting started
 
@@ -98,8 +102,9 @@ npm run sync
 ```
 
 Downloads the latest weekly dataset release and upserts anime with AniList IDs
-(~1 minute). Re-run periodically to refresh titles. A scheduled
-[GitHub Action](#automated-weekly-sync) can do this for you.
+(~1 minute). Then run `npm run sync:gaps` to add any newest titles the dataset
+hasn't picked up yet. A scheduled [GitHub Action](#automated-weekly-sync) runs
+both steps weekly.
 
 ### 5. Run locally
 
@@ -115,6 +120,7 @@ npm run dev    # http://localhost:3000
 | `npm run build` | Production build |
 | `npm run start` | Serve production build |
 | `npm run sync` | Refresh Supabase search index from offline dataset |
+| `npm run sync:gaps` | Upsert missing newest anime from AniList (bounded top-up) |
 | `npm run codegen` | Regenerate typed GraphQL after editing `queries.ts` |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
@@ -188,7 +194,8 @@ Sumi is deployed on Vercel's serverless platform. A few things worth knowing:
 
 The search catalog is refreshed by a scheduled GitHub Action
 ([`.github/workflows/sync.yml`](.github/workflows/sync.yml)) that runs
-`npm run sync:ci` once a week (and on-demand via the **Run workflow** button).
+`npm run sync:ci` then `npm run sync:gaps:ci` once a week (and on-demand via
+the **Run workflow** button).
 
 Set these as **GitHub repository secrets**
 (Settings → Secrets and variables → Actions → New repository secret):

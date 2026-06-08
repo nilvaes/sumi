@@ -11,6 +11,8 @@
     "codegen": "graphql-codegen --config codegen.ts",
     "sync": "node --env-file=.env.local --import tsx scripts/sync-anime.ts",
     "sync:ci": "node --import tsx scripts/sync-anime.ts",
+    "sync:gaps": "node --env-file=.env.local --import tsx scripts/sync-anilist-gaps.ts",
+    "sync:gaps:ci": "node --import tsx scripts/sync-anilist-gaps.ts",
     "test": "vitest run"
   },
   "dependencies": {

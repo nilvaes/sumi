@@ -158,6 +158,13 @@ export type BrowseQueryVariables = Exact<{
 
 export type BrowseQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
 
+export type GapFillQueryVariables = Exact<{
+  page?: number | null | undefined;
+}>;
+
+
+export type GapFillQuery = { Page: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
+
 export type ScheduleQueryVariables = Exact<{
   start: number;
   end: number;
@@ -412,6 +419,35 @@ export const BrowseDocument = new TypedDocumentString(`
     timeUntilAiring
   }
 }`) as unknown as TypedDocumentString<BrowseQuery, BrowseQueryVariables>;
+export const GapFillDocument = new TypedDocumentString(`
+    query GapFill($page: Int = 1) {
+  Page(page: $page, perPage: 50) {
+    media(sort: ID_DESC, type: ANIME, isAdult: false) {
+      ...MediaCardFields
+    }
+  }
+}
+    fragment MediaCardFields on Media {
+  id
+  title {
+    romaji
+    english
+  }
+  coverImage {
+    extraLarge
+    color
+  }
+  format
+  averageScore
+  seasonYear
+  genres
+  episodes
+  nextAiringEpisode {
+    episode
+    airingAt
+    timeUntilAiring
+  }
+}`) as unknown as TypedDocumentString<GapFillQuery, GapFillQueryVariables>;
 export const ScheduleDocument = new TypedDocumentString(`
     query Schedule($start: Int!, $end: Int!, $page: Int = 1) {
   Page(page: $page, perPage: 50) {
