@@ -80,6 +80,11 @@ export default async function LoginPage({
             Send magic link
           </button>
         </form>
+        <p className="text-xs leading-relaxed text-text-muted">
+          Tip: The link can take a minute — check spam. Magic links are limited
+          to a few sends per hour, so wait before retrying or use Google for
+          instant sign-in.
+        </p>
       </div>
 
       <footer className="space-y-4">
