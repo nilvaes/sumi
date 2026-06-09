@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { loginErrorMessage } from "@/lib/auth/login-errors";
 import { signInWithEmail, signInWithGoogle } from "./actions";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default async function LoginPage({
 }) {
   const sp = await searchParams;
   const sent = flag(sp, "sent");
-  const error = sp.error;
+  const errorMessage = loginErrorMessage(sp.error);
 
   return (
     <div className="mx-auto max-w-sm space-y-8 px-4 py-16">
@@ -39,11 +40,9 @@ export default async function LoginPage({
         </p>
       )}
 
-      {error && (
+      {errorMessage && (
         <p className="rounded-md border border-brand/40 bg-surface px-4 py-3 text-sm text-text-muted">
-          Sign-in failed. Check Supabase URL Configuration and try again (see{" "}
-          <code className="text-xs">docs/supabase-auth-setup.md</code> in the
-          repo).
+          {errorMessage}
         </p>
       )}
 
