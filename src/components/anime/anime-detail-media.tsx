@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { useCallback, useState } from "react";
+import { BookmarkRibbon } from "@/components/bookmarks/bookmark-ribbon";
 import { cn } from "@/lib/utils";
 import { SetAnimeDocumentTitle } from "./set-anime-document-title";
 import { DETAIL_FADE_MS, FadeIn } from "./fade-in";
 
 type Props = {
+  anilistId: number;
   bannerUrl?: string | null;
   coverUrl?: string | null;
   title: string;
@@ -20,6 +22,7 @@ type Props = {
  * Text/aside fade in on mount so copy is readable while images finish.
  */
 export function AnimeDetailMedia({
+  anilistId,
   bannerUrl,
   coverUrl,
   title,
@@ -80,6 +83,7 @@ export function AnimeDetailMedia({
                   墨
                 </div>
               )}
+              <BookmarkRibbon anilistId={anilistId} size="lg" />
             </div>
             <FadeIn>{aside}</FadeIn>
           </div>

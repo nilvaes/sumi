@@ -76,3 +76,49 @@ create policy "Public read anime"
   on public.anime for select
   to anon, authenticated
   using (true);
+
+-- ---------------------------------------------------------------------------
+-- Bookmarks (Phase 2a) — per-user anime lists stored in Sumi (not AniList).
+-- Run this block once in the Supabase SQL editor after auth is configured.
+-- ---------------------------------------------------------------------------
+
+create type public.bookmark_status as enum ('watching', 'planning', 'completed');
+
+create table if not exists public.bookmarks (
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  anilist_id  integer not null,
+  status      public.bookmark_status not null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  primary key (user_id, anilist_id)
+);
+
+create index if not exists bookmarks_user_status_idx
+  on public.bookmarks (user_id, status);
+
+alter table public.bookmarks enable row level security;
+
+drop policy if exists "Users read own bookmarks" on public.bookmarks;
+create policy "Users read own bookmarks"
+  on public.bookmarks for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists "Users insert own bookmarks" on public.bookmarks;
+create policy "Users insert own bookmarks"
+  on public.bookmarks for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists "Users update own bookmarks" on public.bookmarks;
+create policy "Users update own bookmarks"
+  on public.bookmarks for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists "Users delete own bookmarks" on public.bookmarks;
+create policy "Users delete own bookmarks"
+  on public.bookmarks for delete
+  to authenticated
+  using (user_id = auth.uid());

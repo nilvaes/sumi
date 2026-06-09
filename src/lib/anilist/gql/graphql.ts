@@ -174,6 +174,13 @@ export type ScheduleQueryVariables = Exact<{
 
 export type ScheduleQuery = { Page: { pageInfo: { hasNextPage: boolean | null, currentPage: number | null } | null, airingSchedules: Array<{ id: number, airingAt: number, episode: number, media: { id: number, format: MediaFormat | null, isAdult: boolean | null, title: { romaji: string | null, english: string | null } | null, coverImage: { extraLarge: string | null, large: string | null, color: string | null } | null } | null } | null> | null } | null };
 
+export type MediaByIdsQueryVariables = Exact<{
+  ids?: Array<number | null | undefined> | number | null | undefined;
+}>;
+
+
+export type MediaByIdsQuery = { Page: { media: Array<{ id: number, format: MediaFormat | null, averageScore: number | null, seasonYear: number | null, genres: Array<string | null> | null, episodes: number | null, title: { romaji: string | null, english: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null } | null> | null } | null };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -477,3 +484,32 @@ export const ScheduleDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ScheduleQuery, ScheduleQueryVariables>;
+export const MediaByIdsDocument = new TypedDocumentString(`
+    query MediaByIds($ids: [Int]) {
+  Page(page: 1, perPage: 50) {
+    media(id_in: $ids, type: ANIME, isAdult: false) {
+      ...MediaCardFields
+    }
+  }
+}
+    fragment MediaCardFields on Media {
+  id
+  title {
+    romaji
+    english
+  }
+  coverImage {
+    extraLarge
+    color
+  }
+  format
+  averageScore
+  seasonYear
+  genres
+  episodes
+  nextAiringEpisode {
+    episode
+    airingAt
+    timeUntilAiring
+  }
+}`) as unknown as TypedDocumentString<MediaByIdsQuery, MediaByIdsQueryVariables>;

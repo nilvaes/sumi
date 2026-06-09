@@ -1,5 +1,11 @@
 import { anilistRequest } from "./client";
-import { AnimeDetailQuery, BrowseQuery, HomeQuery, ScheduleQuery } from "./queries";
+import {
+  AnimeDetailQuery,
+  BrowseQuery,
+  HomeQuery,
+  MediaByIdsQuery,
+  ScheduleQuery,
+} from "./queries";
 import type { BrowseFilters } from "@/lib/anilist/filters";
 import type { SearchAnime } from "@/lib/supabase/search";
 
@@ -43,6 +49,11 @@ export function getBrowse(filters: BrowseFilters, page = 1) {
 
 export function getSchedule(start: number, end: number, page = 1) {
   return anilistRequest(ScheduleQuery, { start, end, page }, HOUR);
+}
+
+/** Fetch up to 50 anime by AniList id (bookmark grids). */
+export function getMediaByIds(ids: number[]) {
+  return anilistRequest(MediaByIdsQuery, { ids: ids.slice(0, 50) }, HOUR);
 }
 
 /**
