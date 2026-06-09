@@ -56,8 +56,9 @@ export default function AboutPage() {
           browser. Search is different: because AniList only matches whole words,
           titles are indexed in Supabase Postgres with a trigram index for fast
           partial and fuzzy matching. The index is populated from an
-          openly-licensed dataset, with a small weekly top-up of missing recent
-          titles from AniList (bounded — not a bulk catalog mirror). If search
+          openly-licensed dataset (refreshed manually when needed), plus a weekly
+          top-up of missing recent titles from AniList (bounded — not a bulk
+          catalog mirror). If search
           still misses a title, hybrid search queries AniList live.
         </p>
       </section>

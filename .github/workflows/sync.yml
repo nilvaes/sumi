@@ -1,15 +1,15 @@
-name: Weekly catalog sync
+name: Weekly AniList gap-fill
 
-# Refreshes the Supabase search index from the anime-offline-database release.
-# Runs on a schedule and can be triggered manually from the Actions tab.
+# Upserts missing newest anime into the Supabase search index (bounded top-up).
+# Full catalog refresh from anime-offline-database is manual: npm run sync
+# Run on a schedule and via the Actions tab (Run workflow).
 on:
   schedule:
-    # Every Monday at 06:00 UTC (the dataset publishes weekly).
     - cron: "0 6 * * 1"
   workflow_dispatch: {}
 
 jobs:
-  sync:
+  gap-fill:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,12 +24,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Sync catalog into Supabase
-        run: npm run sync:ci
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: AniList gap-fill (newest anime missing from index)
         run: npm run sync:gaps:ci

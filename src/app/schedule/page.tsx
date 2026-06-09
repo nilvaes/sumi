@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getWeekSchedule } from "@/lib/anilist/api";
+import { AniListError } from "@/lib/anilist/client";
 import { ScheduleTimeline } from "@/components/schedule/schedule-timeline";
 
 export const metadata: Metadata = {
@@ -7,8 +8,19 @@ export const metadata: Metadata = {
   description: "Anime airing over the next seven days, with episode countdowns.",
 };
 
+/** Fetched at request time — avoids build failures when AniList is down (502). */
+export const dynamic = "force-dynamic";
+
 export default async function SchedulePage() {
-  const entries = await getWeekSchedule();
+  let entries: Awaited<ReturnType<typeof getWeekSchedule>> = [];
+  let loadError = false;
+
+  try {
+    entries = await getWeekSchedule();
+  } catch (err) {
+    if (err instanceof AniListError) loadError = true;
+    else throw err;
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-10">
@@ -18,7 +30,13 @@ export default async function SchedulePage() {
         </h1>
         <p className="text-text-muted">The next seven days, in your local time.</p>
       </header>
-      <ScheduleTimeline entries={entries} />
+      {loadError ? (
+        <p className="py-12 text-center text-sm text-text-muted">
+          Schedule is temporarily unavailable. Please try again in a moment.
+        </p>
+      ) : (
+        <ScheduleTimeline entries={entries} />
+      )}
     </div>
   );
 }

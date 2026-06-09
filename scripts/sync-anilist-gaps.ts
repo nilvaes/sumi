@@ -1,7 +1,7 @@
 /**
  * Bounded AniList top-up for the Supabase search index.
  *
- * After the weekly manami sync, fetches the newest anime by id (ID_DESC), upserts
+ * Fetches the newest anime by id (ID_DESC), upserts
  * only rows missing from Postgres, and stops when a page is already fully indexed.
  * Typical cost: 1–3 API calls/week — not a bulk catalog mirror.
  *

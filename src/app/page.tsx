@@ -3,6 +3,9 @@ import { MediaGrid } from "@/components/media-grid";
 import { Section } from "@/components/section";
 import { Hero } from "@/components/hero";
 
+/** Fetched at request time — avoids build failures when AniList is down (502). */
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const data = await getHome();
 

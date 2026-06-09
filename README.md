@@ -44,8 +44,8 @@ Browser
   │
   └─ /api/search → Supabase (trigram index)
                         ▲
-                        │ npm run sync (weekly manami dump)
-                        │ npm run sync:gaps (bounded AniList top-up)
+                        │ npm run sync (manual — offline dataset bulk load)
+                        │ npm run sync:gaps (weekly AniList top-up, CI)
               anime-offline-database (ODbL) + newest AniList ids
 ```
 
@@ -56,11 +56,12 @@ Browser
   AniList directly.
 - **Offline dataset + Supabase** — AniList search only matches whole words. Sumi
   does **not** bulk-copy the AniList API (their terms prohibit hoarding). Instead,
-  `scripts/sync-anime.ts` downloads the weekly
+  `scripts/sync-anime.ts` downloads the
   [anime-offline-database](https://github.com/manami-project/anime-offline-database)
-  release and upserts ~20k titles (with AniList IDs) into Postgres for fast
-  substring search. `scripts/sync-anilist-gaps.ts` optionally tops up missing
-  recent titles (~150 newest anime max, stop when caught up, ~1–3 API calls/week).
+  release and upserts ~20k titles (with AniList IDs) into Postgres — run
+  **manually** when you want a full refresh. `scripts/sync-anilist-gaps.ts` runs
+  **weekly** (GitHub Action) to top up missing recent titles (~150 newest anime
+  max, stop when caught up, ~1–3 API calls/week).
   Hybrid search still falls back to live AniList when the index misses a query.
   Detail pages load live from AniList when you click a result.
 
@@ -97,14 +98,22 @@ cp .env.example .env.local
 
 ### 4. Sync the search catalog
 
+**First time** (or when you want a full ~20k refresh):
+
 ```bash
 npm run sync
 ```
 
-Downloads the latest weekly dataset release and upserts anime with AniList IDs
-(~1 minute). Then run `npm run sync:gaps` to add any newest titles the dataset
-hasn't picked up yet. A scheduled [GitHub Action](#automated-weekly-sync) runs
-both steps weekly.
+Downloads the latest offline dataset release and upserts anime with AniList IDs
+(~1 minute). Re-run manually whenever you want titles/synonyms refreshed from
+manami.
+
+**Ongoing** — newest titles are added automatically each week via
+[AniList gap-fill](#automated-weekly-gap-fill). You can also run locally:
+
+```bash
+npm run sync:gaps
+```
 
 ### 5. Run locally
 
@@ -119,8 +128,8 @@ npm run dev    # http://localhost:3000
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
 | `npm run start` | Serve production build |
-| `npm run sync` | Refresh Supabase search index from offline dataset |
-| `npm run sync:gaps` | Upsert missing newest anime from AniList (bounded top-up) |
+| `npm run sync` | Full search index refresh from offline dataset (manual) |
+| `npm run sync:gaps` | Upsert missing newest anime from AniList (weekly in CI) |
 | `npm run codegen` | Regenerate typed GraphQL after editing `queries.ts` |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
@@ -190,12 +199,14 @@ Sumi is deployed on Vercel's serverless platform. A few things worth knowing:
   server-side client (`src/lib/anilist/client.ts`) with request spacing and
   `429` backoff, so navigation patterns never blow the upstream budget.
 
-## Automated weekly sync
+## Automated weekly gap-fill
 
-The search catalog is refreshed by a scheduled GitHub Action
+Newest anime are topped up by a scheduled GitHub Action
 ([`.github/workflows/sync.yml`](.github/workflows/sync.yml)) that runs
-`npm run sync:ci` then `npm run sync:gaps:ci` once a week (and on-demand via
-the **Run workflow** button).
+`npm run sync:gaps:ci` every Monday (and on-demand via **Run workflow**).
+
+The full offline-dataset refresh (`npm run sync`) is **manual** — run locally
+when you want to reload ~20k titles from manami.
 
 Set these as **GitHub repository secrets**
 (Settings → Secrets and variables → Actions → New repository secret):
@@ -206,8 +217,8 @@ Set these as **GitHub repository secrets**
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service-role** key (server-only) |
 
 The service-role key lives only in GitHub's encrypted secrets and is never
-committed. To run the sync manually, open the **Actions** tab → **Weekly catalog
-sync** → **Run workflow**.
+committed. To run gap-fill manually, open **Actions** → **Weekly AniList gap-fill**
+→ **Run workflow**, or run `npm run sync:gaps` locally.
 
 ## Roadmap
 
