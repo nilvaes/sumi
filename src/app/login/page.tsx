@@ -29,8 +29,7 @@ export default async function LoginPage({
       <header className="space-y-2 text-center">
         <h1 className="font-serif text-3xl text-text">Sign in</h1>
         <p className="text-sm text-text-muted">
-          New here? Pick Google or email — we create your account on first
-          sign-in.
+          Save your watchlists and pick up where you left off.
         </p>
       </header>
 
@@ -55,37 +54,44 @@ export default async function LoginPage({
         </button>
       </form>
 
-      <div className="flex items-center gap-3 text-xs text-text-muted">
-        <span className="h-px flex-1 bg-border" />
-        or email
-        <span className="h-px flex-1 bg-border" />
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 text-xs text-text-muted">
+          <span className="h-px flex-1 bg-border" />
+          or email
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form action={signInWithEmail} className="space-y-3">
+          <label className="block space-y-1.5">
+            <span className="text-sm text-text-muted">Email</span>
+            <input
+              type="email"
+              name="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text outline-none ring-brand focus:ring-1"
+            />
+          </label>
+          <button
+            type="submit"
+            className="w-full rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+          >
+            Send magic link
+          </button>
+        </form>
       </div>
 
-      <form action={signInWithEmail} className="space-y-3">
-        <label className="block space-y-1.5">
-          <span className="text-sm text-text-muted">Email</span>
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            placeholder="you@example.com"
-            className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text outline-none ring-brand focus:ring-1"
-          />
-        </label>
-        <button
-          type="submit"
-          className="w-full rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
-          Send magic link
-        </button>
-      </form>
-
-      <p className="text-center text-xs text-text-muted">
-        <Link href="/" className="transition-colors hover:text-text">
-          ← Back to home
-        </Link>
-      </p>
+      <footer className="space-y-4">
+        <p className="text-center text-xs text-text-muted">
+          <Link href="/" className="transition-colors hover:text-text">
+            ← Back to home
+          </Link>
+        </p>
+        <p className="rounded-md border border-brand/15 bg-brand/5 px-4 py-3 text-center text-xs leading-relaxed text-text-muted">
+          First time here? We&apos;ll create your account when you sign in.
+        </p>
+      </footer>
     </div>
   );
 }
