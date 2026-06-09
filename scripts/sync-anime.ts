@@ -6,7 +6,8 @@
  * Only entries that carry an AniList id are kept (so click-through to our live
  * AniList detail pages works).
  *
- * Run with:  npm run sync
+ * Run manually when you want a full ~20k refresh:  npm run sync
+ * (Weekly CI only runs AniList gap-fill — see scripts/sync-anilist-gaps.ts.)
  */
 import { createClient } from "@supabase/supabase-js";
 
