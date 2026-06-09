@@ -5,7 +5,7 @@ export function getAppOriginFromHeaders(h: Headers): string {
 
   const host = h.get("x-forwarded-host") ?? h.get("host");
   if (host) {
-    const proto = h.get("x-forwarded-proto") ?? "https";
+    const proto = (h.get("x-forwarded-proto") ?? "https").split(",")[0]?.trim() ?? "https";
     const hostname = host.split(",")[0]?.trim();
     if (hostname) return `${proto}://${hostname}`;
   }
@@ -19,4 +19,8 @@ export function getAppOriginFromHeaders(h: Headers): string {
   }
 
   return "http://localhost:3000";
+}
+
+export function getAuthCallbackUrl(h: Headers): string {
+  return `${getAppOriginFromHeaders(h)}/auth/callback`;
 }

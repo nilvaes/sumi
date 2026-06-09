@@ -2,17 +2,18 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAppOriginFromHeaders } from "@/lib/app-origin";
+import { getAuthCallbackUrl } from "@/lib/app-origin";
+import { classifyEmailSendFailure } from "@/lib/auth/login-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signInWithGoogle() {
   const supabase = await createClient();
-  const origin = getAppOriginFromHeaders(await headers());
+  const redirectTo = getAuthCallbackUrl(await headers());
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo,
     },
   });
 
@@ -24,17 +25,24 @@ export async function signInWithEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) redirect("/login?error=email");
 
+  const h = await headers();
   const supabase = await createClient();
-  const origin = getAppOriginFromHeaders(await headers());
+  const emailRedirectTo = getAuthCallbackUrl(h);
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo,
     },
   });
 
-  if (error) redirect("/login?error=email");
+  if (error) {
+    console.error("[auth] signInWithOtp failed:", error.message, {
+      code: error.code,
+      emailRedirectTo,
+    });
+    redirect(`/login?error=${classifyEmailSendFailure(error)}`);
+  }
   redirect("/login?sent=1");
 }
 
