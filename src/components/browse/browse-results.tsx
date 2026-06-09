@@ -48,7 +48,8 @@ export function BrowseResults({
   if (query.isError) {
     return (
       <p className="py-12 text-center text-sm text-text-muted">
-        Couldn&apos;t load results. Please try again.
+        Couldn&apos;t load results — AniList may be temporarily unavailable.
+        Please try again in a few minutes.
       </p>
     );
   }

@@ -1,13 +1,31 @@
-import { getHome } from "@/lib/anilist/api";
+import { AniListUnavailable } from "@/components/anilist-unavailable";
+import { Hero } from "@/components/hero";
 import { MediaGrid } from "@/components/media-grid";
 import { Section } from "@/components/section";
-import { Hero } from "@/components/hero";
+import { getHome } from "@/lib/anilist/api";
+import { AniListError } from "@/lib/anilist/client";
 
-/** Fetched at request time — avoids build failures when AniList is down (502). */
+/** Fetched at request time — avoids build failures when AniList is down. */
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const data = await getHome();
+  let data: Awaited<ReturnType<typeof getHome>> | null = null;
+  let loadError = false;
+
+  try {
+    data = await getHome();
+  } catch (err) {
+    if (err instanceof AniListError) loadError = true;
+    else throw err;
+  }
+
+  if (loadError || !data) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <AniListUnavailable />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-16 px-4 py-10">

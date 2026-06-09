@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { RelationCard } from "@/components/relation-card";
+import { AniListUnavailable } from "@/components/anilist-unavailable";
 import { AnimeDetailMedia } from "@/components/anime/anime-detail-media";
+import { RelationCard } from "@/components/relation-card";
+import { AniListError } from "@/lib/anilist/client";
 import { loadAnime } from "@/lib/anilist/load-anime";
 import {
   formatCountdown,
@@ -14,7 +16,26 @@ import { formatSeason } from "@/lib/utils/season";
 
 /** Server-fetched detail body; wrapped in Suspense so navigation shows a skeleton immediately. */
 export async function AnimeDetailContent({ id }: { id: string }) {
-  const media = await loadAnime(id);
+  let media: Awaited<ReturnType<typeof loadAnime>>;
+
+  try {
+    media = await loadAnime(id);
+  } catch (err) {
+    if (err instanceof AniListError) {
+      return (
+        <div className="mx-auto max-w-6xl space-y-6 px-4 py-16">
+          <AniListUnavailable showSearchHint={false} />
+          <Link
+            href="/browse"
+            className="block text-center text-sm text-text-muted transition-colors hover:text-brand"
+          >
+            ← Back to browse
+          </Link>
+        </div>
+      );
+    }
+    throw err;
+  }
 
   const title = media.title?.english ?? media.title?.romaji ?? "Untitled";
   const romaji =

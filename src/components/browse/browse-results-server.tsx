@@ -1,4 +1,6 @@
+import { AniListUnavailable } from "@/components/anilist-unavailable";
 import { getBrowse } from "@/lib/anilist/api";
+import { AniListError } from "@/lib/anilist/client";
 import type { BrowseFilters } from "@/lib/anilist/filters";
 import { BrowseResults } from "./browse-results";
 
@@ -8,6 +10,17 @@ export async function BrowseResultsServer({
 }: {
   filters: BrowseFilters;
 }) {
-  const data = await getBrowse(filters, 1);
-  return <BrowseResults filters={filters} initialPage={data.Page} />;
+  let initialPage: Awaited<ReturnType<typeof getBrowse>>["Page"] | undefined;
+  let loadError = false;
+
+  try {
+    const data = await getBrowse(filters, 1);
+    initialPage = data.Page;
+  } catch (err) {
+    if (err instanceof AniListError) loadError = true;
+    else throw err;
+  }
+
+  if (loadError) return <AniListUnavailable />;
+  return <BrowseResults filters={filters} initialPage={initialPage} />;
 }

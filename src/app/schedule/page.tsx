@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { AniListUnavailable } from "@/components/anilist-unavailable";
+import { ScheduleTimeline } from "@/components/schedule/schedule-timeline";
 import { getWeekSchedule } from "@/lib/anilist/api";
 import { AniListError } from "@/lib/anilist/client";
-import { ScheduleTimeline } from "@/components/schedule/schedule-timeline";
 
 export const metadata: Metadata = {
   title: "Airing schedule",
@@ -31,9 +32,7 @@ export default async function SchedulePage() {
         <p className="text-text-muted">The next seven days, in your local time.</p>
       </header>
       {loadError ? (
-        <p className="py-12 text-center text-sm text-text-muted">
-          Schedule is temporarily unavailable. Please try again in a moment.
-        </p>
+        <AniListUnavailable />
       ) : (
         <ScheduleTimeline entries={entries} />
       )}
