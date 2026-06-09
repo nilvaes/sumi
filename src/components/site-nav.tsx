@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UserNav } from "@/components/auth/user-nav";
 import { SearchBox } from "./search-box";
 
 export function SiteNav() {
@@ -31,6 +32,7 @@ export function SiteNav() {
           >
             Schedule
           </Link>
+          <UserNav />
         </div>
       </nav>
     </header>
