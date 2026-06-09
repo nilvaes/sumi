@@ -2,20 +2,12 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAppOriginFromHeaders } from "@/lib/app-origin";
 import { createClient } from "@/lib/supabase/server";
-
-async function appOrigin(): Promise<string> {
-  const h = await headers();
-  return (
-    h.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:3000"
-  );
-}
 
 export async function signInWithGoogle() {
   const supabase = await createClient();
-  const origin = await appOrigin();
+  const origin = getAppOriginFromHeaders(await headers());
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -33,7 +25,7 @@ export async function signInWithEmail(formData: FormData) {
   if (!email) redirect("/login?error=email");
 
   const supabase = await createClient();
-  const origin = await appOrigin();
+  const origin = getAppOriginFromHeaders(await headers());
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
