@@ -22,6 +22,7 @@ type Documents = {
     "\n  query Browse(\n    $page: Int = 1\n    $sort: [MediaSort] = [POPULARITY_DESC]\n    $status: MediaStatus\n    $season: MediaSeason\n    $seasonYear: Int\n    $genre: String\n    $format: MediaFormat\n    $search: String\n  ) {\n    Page(page: $page, perPage: 24) {\n      pageInfo {\n        hasNextPage\n        currentPage\n      }\n      media(\n        sort: $sort\n        status: $status\n        season: $season\n        seasonYear: $seasonYear\n        genre: $genre\n        format: $format\n        search: $search\n        type: ANIME\n        isAdult: false\n      ) {\n        ...MediaCardFields\n      }\n    }\n  }\n": typeof types.BrowseDocument,
     "\n  query GapFill($page: Int = 1) {\n    Page(page: $page, perPage: 50) {\n      media(sort: ID_DESC, type: ANIME, isAdult: false) {\n        ...MediaCardFields\n      }\n    }\n  }\n": typeof types.GapFillDocument,
     "\n  query Schedule($start: Int!, $end: Int!, $page: Int = 1) {\n    Page(page: $page, perPage: 50) {\n      pageInfo {\n        hasNextPage\n        currentPage\n      }\n      airingSchedules(\n        airingAt_greater: $start\n        airingAt_lesser: $end\n        sort: TIME\n      ) {\n        id\n        airingAt\n        episode\n        media {\n          id\n          title {\n            romaji\n            english\n          }\n          coverImage {\n            extraLarge\n            large\n            color\n          }\n          format\n          isAdult\n        }\n      }\n    }\n  }\n": typeof types.ScheduleDocument,
+    "\n  query MediaByIds($ids: [Int]) {\n    Page(page: 1, perPage: 50) {\n      media(id_in: $ids, type: ANIME, isAdult: false) {\n        ...MediaCardFields\n      }\n    }\n  }\n": typeof types.MediaByIdsDocument,
 };
 const documents: Documents = {
     "\n  fragment MediaCardFields on Media {\n    id\n    title {\n      romaji\n      english\n    }\n    coverImage {\n      extraLarge\n      color\n    }\n    format\n    averageScore\n    seasonYear\n    genres\n    episodes\n    nextAiringEpisode {\n      episode\n      airingAt\n      timeUntilAiring\n    }\n  }\n": types.MediaCardFieldsFragmentDoc,
@@ -31,6 +32,7 @@ const documents: Documents = {
     "\n  query Browse(\n    $page: Int = 1\n    $sort: [MediaSort] = [POPULARITY_DESC]\n    $status: MediaStatus\n    $season: MediaSeason\n    $seasonYear: Int\n    $genre: String\n    $format: MediaFormat\n    $search: String\n  ) {\n    Page(page: $page, perPage: 24) {\n      pageInfo {\n        hasNextPage\n        currentPage\n      }\n      media(\n        sort: $sort\n        status: $status\n        season: $season\n        seasonYear: $seasonYear\n        genre: $genre\n        format: $format\n        search: $search\n        type: ANIME\n        isAdult: false\n      ) {\n        ...MediaCardFields\n      }\n    }\n  }\n": types.BrowseDocument,
     "\n  query GapFill($page: Int = 1) {\n    Page(page: $page, perPage: 50) {\n      media(sort: ID_DESC, type: ANIME, isAdult: false) {\n        ...MediaCardFields\n      }\n    }\n  }\n": types.GapFillDocument,
     "\n  query Schedule($start: Int!, $end: Int!, $page: Int = 1) {\n    Page(page: $page, perPage: 50) {\n      pageInfo {\n        hasNextPage\n        currentPage\n      }\n      airingSchedules(\n        airingAt_greater: $start\n        airingAt_lesser: $end\n        sort: TIME\n      ) {\n        id\n        airingAt\n        episode\n        media {\n          id\n          title {\n            romaji\n            english\n          }\n          coverImage {\n            extraLarge\n            large\n            color\n          }\n          format\n          isAdult\n        }\n      }\n    }\n  }\n": types.ScheduleDocument,
+    "\n  query MediaByIds($ids: [Int]) {\n    Page(page: 1, perPage: 50) {\n      media(id_in: $ids, type: ANIME, isAdult: false) {\n        ...MediaCardFields\n      }\n    }\n  }\n": types.MediaByIdsDocument,
 };
 
 /**
@@ -61,6 +63,10 @@ export function graphql(source: "\n  query GapFill($page: Int = 1) {\n    Page(p
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Schedule($start: Int!, $end: Int!, $page: Int = 1) {\n    Page(page: $page, perPage: 50) {\n      pageInfo {\n        hasNextPage\n        currentPage\n      }\n      airingSchedules(\n        airingAt_greater: $start\n        airingAt_lesser: $end\n        sort: TIME\n      ) {\n        id\n        airingAt\n        episode\n        media {\n          id\n          title {\n            romaji\n            english\n          }\n          coverImage {\n            extraLarge\n            large\n            color\n          }\n          format\n          isAdult\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').ScheduleDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query MediaByIds($ids: [Int]) {\n    Page(page: 1, perPage: 50) {\n      media(id_in: $ids, type: ANIME, isAdult: false) {\n        ...MediaCardFields\n      }\n    }\n  }\n"): typeof import('./graphql').MediaByIdsDocument;
 
 
 export function graphql(source: string) {

@@ -99,6 +99,7 @@ export async function AnimeDetailContent({ id }: { id: string }) {
 
   return (
     <AnimeDetailMedia
+      anilistId={media.id}
       bannerUrl={media.bannerImage}
       coverUrl={cover}
       title={title}

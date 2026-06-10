@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { UserNav } from "@/components/auth/user-nav";
+import { createClient } from "@/lib/supabase/server";
 import { SearchBox } from "./search-box";
 
-export function SiteNav() {
+export async function SiteNav() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
@@ -32,6 +38,14 @@ export function SiteNav() {
           >
             Schedule
           </Link>
+          {user && (
+            <Link
+              href="/bookmarks"
+              className="text-sm text-text-muted transition-colors hover:text-text"
+            >
+              Bookmarks
+            </Link>
+          )}
           <UserNav />
         </div>
       </nav>

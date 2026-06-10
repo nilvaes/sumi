@@ -240,3 +240,14 @@ export const ScheduleQuery = graphql(`
     }
   }
 `);
+
+/** Batch fetch card fields for bookmark grids (preserves caller order where possible). */
+export const MediaByIdsQuery = graphql(`
+  query MediaByIds($ids: [Int]) {
+    Page(page: 1, perPage: 50) {
+      media(id_in: $ids, type: ANIME, isAdult: false) {
+        ...MediaCardFields
+      }
+    }
+  }
+`);
