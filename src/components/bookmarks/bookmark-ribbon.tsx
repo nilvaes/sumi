@@ -23,13 +23,8 @@ import {
 import type { BookmarkStatus } from "@/lib/bookmarks/types";
 import { cn } from "@/lib/utils";
 
-/** Classic bookmark silhouette with a V-notch at the bottom. */
-const BOOKMARK_CLIP =
-  "polygon(0 0, 100% 0, 100% calc(100% - 7px), 50% 100%, 0 calc(100% - 7px))";
-
-/** Inactive ribbon: dark tab, warm off-white edge + icons (matches `--text`). */
-const INACTIVE_BORDER = "border-text/85";
-const INACTIVE_ICON = "text-text/85";
+/** Inactive ribbon: dark tab, white edge + icons. */
+const INACTIVE_ICON = "text-white";
 
 type Props = {
   anilistId: number;
@@ -134,15 +129,11 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
       >
         <div
           className={cn(
-            "absolute inset-0 border transition-colors duration-200",
+            "absolute inset-0 rounded-b-sm border-2 border-t-0 transition-colors duration-200",
             active
-              ? "border-brand/60 bg-brand shadow-md shadow-black/20"
-                  : cn(
-                  "border-2 bg-bg/95 shadow-md shadow-black/40 backdrop-blur-sm",
-                  INACTIVE_BORDER,
-                ),
+              ? "border-white/90 bg-brand shadow-md shadow-black/20"
+              : "border-white bg-bg shadow-md shadow-black/40",
           )}
-          style={{ clipPath: BOOKMARK_CLIP }}
         />
 
         <div
@@ -181,7 +172,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
                 className={cn(
                   "flex items-center justify-center rounded-sm p-1 transition-colors",
                   compact ? "size-7" : "size-8",
-                  active ? "hover:bg-white/10" : cn(INACTIVE_ICON, "hover:bg-text/15 hover:text-text"),
+                  active ? "hover:bg-white/10" : cn(INACTIVE_ICON, "hover:bg-white/10"),
                 )}
                 onClick={stopNav}
               >
@@ -204,10 +195,10 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
                       selected
                         ? active
                           ? "bg-white/20 text-white"
-                          : cn(INACTIVE_ICON, "bg-text/10")
+                          : cn(INACTIVE_ICON, "bg-white/10")
                         : active
                           ? "text-white/90 hover:bg-white/10"
-                          : cn(INACTIVE_ICON, "hover:bg-text/15 hover:text-text"),
+                          : cn(INACTIVE_ICON, "hover:bg-white/10"),
                     )}
                     onClick={(e) => {
                       stopNav(e);
