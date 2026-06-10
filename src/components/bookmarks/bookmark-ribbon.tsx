@@ -142,23 +142,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
             active ? "text-white" : INACTIVE_ICON,
           )}
         >
-          <div
-            className={cn(
-              "shrink-0",
-              compact ? "h-3.5" : "h-4",
-              active && "flex items-end justify-center pb-0.5",
-            )}
-          >
-            {active && (
-              <span
-                className={cn(
-                  "rounded-full bg-white/85",
-                  compact ? "size-1.5" : "size-2",
-                )}
-                aria-hidden
-              />
-            )}
-          </div>
+          <div className={cn("shrink-0", compact ? "h-3.5" : "h-4")} />
 
           <div
             className={cn(
@@ -174,7 +158,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
                   compact ? "size-7" : "size-8",
                   active ? "hover:bg-white/10" : cn(INACTIVE_ICON, "hover:bg-white/10"),
                 )}
-                onClick={stopNav}
+                onClick={(e) => e.stopPropagation()}
               >
                 <LogIn className={compact ? "size-3.5" : "size-4"} aria-hidden />
                 <span className="sr-only">Sign in to bookmark</span>
