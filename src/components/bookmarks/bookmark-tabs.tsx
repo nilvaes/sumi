@@ -7,14 +7,15 @@ export function BookmarkTabs({ active }: { active: BookmarkStatus }) {
   return (
     <div
       className={cn(
-        "sticky top-14 z-40 -mx-4 border-b border-border bg-bg/90 px-4 py-3 backdrop-blur-md",
+        "sticky top-14 z-40 ml-[calc(50%-50vw)] w-screen bg-bg/90 py-3 backdrop-blur-md",
         "supports-[backdrop-filter]:bg-bg/75",
       )}
     >
-      <nav
-        className="mx-auto flex max-w-6xl overflow-hidden rounded-sm border border-border bg-surface"
-        aria-label="Bookmark categories"
-      >
+      <div className="mx-auto max-w-6xl px-4">
+        <nav
+          className="flex overflow-hidden rounded-sm border border-border bg-surface"
+          aria-label="Bookmark categories"
+        >
         {BOOKMARK_TABS.map(({ id, label }, index) => {
           const selected = id === active;
           const { Icon } = BOOKMARK_STATUS_META[id];
@@ -48,7 +49,8 @@ export function BookmarkTabs({ active }: { active: BookmarkStatus }) {
             </div>
           );
         })}
-      </nav>
+        </nav>
+      </div>
     </div>
   );
 }
