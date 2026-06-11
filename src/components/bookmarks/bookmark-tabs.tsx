@@ -5,34 +5,53 @@ import { cn } from "@/lib/utils";
 
 export function BookmarkTabs({ active }: { active: BookmarkStatus }) {
   return (
-    <nav
-      className="flex flex-wrap gap-2 border-b border-border pb-4"
-      aria-label="Bookmark categories"
+    <div
+      className={cn(
+        "sticky top-14 z-40 ml-[calc(50%-50vw)] w-screen bg-bg/90 py-3 backdrop-blur-md",
+        "supports-[backdrop-filter]:bg-bg/75",
+      )}
     >
-      {BOOKMARK_TABS.map(({ id, label }) => {
-        const selected = id === active;
-        const { Icon } = BOOKMARK_STATUS_META[id];
-        return (
-          <Link
-            key={id}
-            href={`/bookmarks?tab=${id}`}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm transition-colors",
-              selected
-                ? "border-brand bg-brand/10 text-text"
-                : "border-border text-text-muted hover:border-brand/40 hover:text-text",
-            )}
-            aria-current={selected ? "page" : undefined}
-          >
-            <Icon
-              className={cn("size-3.5 shrink-0", selected && "text-brand")}
-              aria-hidden
-            />
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+      <div className="mx-auto max-w-6xl px-4">
+        <nav
+          className="flex overflow-hidden rounded-sm border border-border bg-surface"
+          aria-label="Bookmark categories"
+        >
+        {BOOKMARK_TABS.map(({ id, label }, index) => {
+          const selected = id === active;
+          const { Icon } = BOOKMARK_STATUS_META[id];
+          return (
+            <div key={id} className="flex min-w-0 flex-1">
+              {index > 0 && (
+                <div
+                  className="w-px shrink-0 self-stretch bg-border"
+                  aria-hidden
+                />
+              )}
+              <Link
+                href={`/bookmarks?tab=${id}`}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-xs transition-colors sm:gap-2 sm:px-4 sm:py-3 sm:text-sm",
+                  selected
+                    ? "bg-bg font-medium text-text"
+                    : "text-text-muted hover:bg-surface-hover hover:text-text",
+                )}
+                aria-current={selected ? "page" : undefined}
+              >
+                <Icon
+                  className={cn(
+                    "size-3.5 shrink-0 sm:size-4",
+                    selected ? "text-brand" : "text-text-muted",
+                  )}
+                  aria-hidden
+                />
+                <span className="truncate">{label}</span>
+              </Link>
+            </div>
+          );
+        })}
+        </nav>
+      </div>
+    </div>
   );
 }
 

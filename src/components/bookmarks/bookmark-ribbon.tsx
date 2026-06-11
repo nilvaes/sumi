@@ -2,7 +2,6 @@
 
 import { LogIn } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -34,7 +33,6 @@ type Props = {
 };
 
 export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
-  const router = useRouter();
   const { map, isLoggedIn, patch } = useBookmarks();
   const current = map[anilistId] ?? null;
   const active = current !== null;
@@ -76,13 +74,9 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
   const onRootClick = useCallback(
     (e: MouseEvent) => {
       stopNav(e);
-      if (!isLoggedIn) {
-        router.push(`/login?next=/anime/${anilistId}`);
-        return;
-      }
       setPinned((p) => !p);
     },
-    [anilistId, isLoggedIn, router, stopNav],
+    [stopNav],
   );
 
   const pickStatus = useCallback(
@@ -122,7 +116,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
           ? active
             ? `Bookmarked as ${statusLabel}. Change bookmark.`
             : "Add bookmark"
-          : "Sign in to bookmark"
+          : "Tap to sign in and bookmark"
       }
     >
       <div

@@ -67,12 +67,16 @@ export default async function BookmarksPage({
     } catch (err) {
       if (err instanceof AniListError) {
         return (
-          <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
-            <h1 className="font-serif text-3xl text-text sm:text-4xl">
-              Bookmarks
-            </h1>
+          <div className="mx-auto max-w-6xl px-4 py-10">
+            <header className="space-y-2 pb-6">
+              <h1 className="font-serif text-3xl text-text sm:text-4xl">
+                Bookmarks
+              </h1>
+            </header>
             <BookmarkTabs active={tab} />
-            <AniListUnavailable showSearchHint={false} />
+            <div className="pt-6">
+              <AniListUnavailable showSearchHint={false} />
+            </div>
           </div>
         );
       }
@@ -84,8 +88,8 @@ export default async function BookmarksPage({
     tab === "watching" ? "Watching" : tab === "planning" ? "Planning" : "Completed";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
-      <header className="space-y-2">
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <header className="space-y-2 pb-6">
         <h1 className="font-serif text-3xl text-text sm:text-4xl">Bookmarks</h1>
         <p className="text-sm text-text-muted">
           Your saved anime, grouped by status. Use Remove to clear a bookmark.
@@ -95,7 +99,7 @@ export default async function BookmarksPage({
       <BookmarkTabs active={tab} />
 
       {ordered.length === 0 ? (
-        <div className="space-y-4 py-8 text-center">
+        <div className="space-y-4 py-10 text-center">
           <p className="text-sm text-text-muted">
             Nothing in {tabLabel} yet.
           </p>
@@ -107,7 +111,7 @@ export default async function BookmarksPage({
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 pt-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {ordered.map((media) => (
             <BookmarkGridItem key={media.id} media={media} tab={tab} />
           ))}

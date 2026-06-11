@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UserNav } from "@/components/auth/user-nav";
+import { MobileNavMenu } from "@/components/site-nav-mobile-menu";
 import { createClient } from "@/lib/supabase/server";
 import { SearchBox } from "./search-box";
 
@@ -9,10 +10,29 @@ export async function SiteNav() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isLoggedIn = !!user;
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
-        <Link href="/" className="flex items-center gap-2">
+      {/* Mobile: menu left · search center · brand right */}
+      <nav className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 md:hidden">
+        <MobileNavMenu isLoggedIn={isLoggedIn} />
+        <div className="min-w-0 flex-1">
+          <SearchBox className="mx-auto max-w-none" />
+        </div>
+        <Link href="/" className="flex shrink-0 items-center gap-1.5">
+          <span className="font-serif text-xl tracking-tight text-text">
+            Sumi
+          </span>
+          <span className="font-jp text-xl leading-none text-text-muted">
+            墨
+          </span>
+        </Link>
+      </nav>
+
+      {/* Desktop */}
+      <nav className="mx-auto hidden max-w-6xl items-center gap-6 px-4 py-3 md:flex">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="font-serif text-2xl tracking-tight text-text">
             Sumi
           </span>
@@ -25,7 +45,7 @@ export async function SiteNav() {
           <SearchBox />
         </div>
 
-        <div className="flex shrink-0 items-center gap-4 sm:gap-6">
+        <div className="flex shrink-0 items-center gap-6">
           <Link
             href="/browse"
             className="text-sm text-text-muted transition-colors hover:text-text"
@@ -38,7 +58,7 @@ export async function SiteNav() {
           >
             Schedule
           </Link>
-          {user && (
+          {isLoggedIn && (
             <Link
               href="/bookmarks"
               className="text-sm text-text-muted transition-colors hover:text-text"

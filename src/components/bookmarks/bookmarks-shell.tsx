@@ -19,7 +19,11 @@ export async function BookmarksShell({ children }: { children: React.ReactNode }
   }
 
   return (
-    <BookmarkProvider initialMap={initialMap} isLoggedIn={!!user}>
+    <BookmarkProvider
+      key={user?.id ?? "guest"}
+      initialMap={initialMap}
+      isLoggedIn={!!user}
+    >
       {children}
     </BookmarkProvider>
   );
