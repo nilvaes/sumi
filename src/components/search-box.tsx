@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import type { SearchAnime } from "@/lib/supabase/search";
+import { cn } from "@/lib/utils";
 
 async function fetchSuggestions(
   term: string,
@@ -16,7 +17,7 @@ async function fetchSuggestions(
   return res.json();
 }
 
-export function SearchBox() {
+export function SearchBox({ className }: { className?: string }) {
   const router = useRouter();
   const [term, setTerm] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -59,7 +60,10 @@ export function SearchBox() {
   const showDropdown = open && debounced.length >= 2;
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xs">
+    <div
+      ref={containerRef}
+      className={cn("relative w-full max-w-xs", className)}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
