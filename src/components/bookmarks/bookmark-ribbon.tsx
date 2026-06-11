@@ -49,7 +49,13 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
 
   const width = compact ? "w-7" : "w-9";
   const collapsedH = compact ? "h-10" : "h-12";
-  const expandedH = compact ? "h-[7.5rem]" : "h-[8.75rem]";
+  const expandedH = isLoggedIn
+    ? compact
+      ? "h-[7.5rem]"
+      : "h-[8.75rem]"
+    : compact
+      ? "h-14"
+      : "h-16";
 
   useEffect(() => {
     if (!pinned) return;
@@ -142,11 +148,17 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
             active ? "text-white" : INACTIVE_ICON,
           )}
         >
-          <div className={cn("shrink-0", compact ? "h-3.5" : "h-4")} />
+          <div
+            className={cn(
+              "shrink-0",
+              compact ? (isLoggedIn ? "h-3.5" : "h-2") : isLoggedIn ? "h-4" : "h-2.5",
+            )}
+          />
 
           <div
             className={cn(
-              "flex flex-1 flex-col items-center justify-start gap-0.5 overflow-hidden transition-opacity duration-300",
+              "flex flex-col items-center justify-start gap-0.5 overflow-hidden transition-opacity duration-300",
+              isLoggedIn && "flex-1",
               expanded ? "opacity-100" : "pointer-events-none opacity-0",
             )}
           >
