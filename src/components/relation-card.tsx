@@ -18,7 +18,7 @@ export function RelationCard({
     <div className="flex gap-3">
       <div className="relative h-20 w-14 shrink-0 overflow-hidden rounded border border-border bg-surface">
         {cover ? (
-          <Image src={cover} alt={title} fill sizes="56px" className="object-cover" />
+          <Image src={cover} alt={title} fill sizes="56px" className="object-cover" unoptimized />
         ) : (
           <div className="flex h-full items-center justify-center font-jp text-text-muted">
             墨

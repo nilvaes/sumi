@@ -2,10 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Default is [75]; cards/hero use quality={90}.
-    qualities: [75, 90],
+    // AniList covers/banners use `unoptimized` — served from s4.anilist.co as-is.
+    // These settings apply only to any remaining optimized images (e.g. YouTube).
+    formats: ["image/webp"],
+    minimumCacheTTL: 2_678_400, // 31 days — fewer re-transforms for repeat/crawler hits
     remotePatterns: [
-      // Optimized images we control: AniList covers/banners and YouTube thumbs.
       {
         protocol: "https",
         hostname: "s4.anilist.co",
@@ -14,10 +15,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.youtube.com",
       },
-      // Search results come from the anime-offline-database, which aggregates
-      // cover art from many CDNs (MAL, anime-planet, kitsu, livechart, …). These
-      // are rendered with `unoptimized`, so they're served directly rather than
-      // through the image optimizer.
+      // Search suggestions: arbitrary CDNs from anime-offline-database.
       {
         protocol: "https",
         hostname: "**",

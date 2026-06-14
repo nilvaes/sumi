@@ -38,8 +38,8 @@ function HeroSlide({
           fill
           priority={priority}
           sizes="100vw"
-          quality={90}
           className="object-cover"
+          unoptimized
         />
       ) : (
         <div

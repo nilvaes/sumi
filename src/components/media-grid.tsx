@@ -4,10 +4,8 @@ type MediaItem = CardMedia | null;
 
 export function MediaGrid({
   items,
-  unoptimized = false,
 }: {
   items: readonly MediaItem[];
-  unoptimized?: boolean;
 }) {
   const media = items.filter((m): m is CardMedia => m !== null);
 
@@ -22,7 +20,7 @@ export function MediaGrid({
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
       {media.map((m) => (
-        <AnimeCard key={m.id} media={m} unoptimized={unoptimized} />
+        <AnimeCard key={m.id} media={m} />
       ))}
     </div>
   );

@@ -65,7 +65,7 @@ export function SearchResults({ q }: { q: string }) {
 
   return (
     <div className="space-y-8">
-      <MediaGrid items={items} unoptimized />
+      <MediaGrid items={items} />
       {query.hasNextPage && (
         <div className="flex justify-center">
           <button

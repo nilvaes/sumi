@@ -23,11 +23,8 @@ export type CardMedia = {
 
 export function AnimeCard({
   media,
-  unoptimized = false,
 }: {
   media: CardMedia;
-  /** Skip the Next image optimizer (used for search results from arbitrary CDNs). */
-  unoptimized?: boolean;
 }) {
   const title = media.title?.english ?? media.title?.romaji ?? "Untitled";
   const cover =
@@ -44,9 +41,8 @@ export function AnimeCard({
               alt={title}
               fill
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 180px"
-              quality={90}
               className="object-cover"
-              unoptimized={unoptimized}
+              unoptimized
             />
           ) : (
             <div className="flex h-full items-center justify-center font-jp text-3xl text-text-muted">

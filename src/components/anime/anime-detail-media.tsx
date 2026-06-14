@@ -57,6 +57,7 @@ export function AnimeDetailMedia({
             style={{ transitionDuration: `${DETAIL_FADE_MS}ms` }}
             onLoad={markBannerReady}
             onError={markBannerReady}
+            unoptimized
           />
         ) : null}
         <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/40 to-transparent" />
@@ -77,6 +78,7 @@ export function AnimeDetailMedia({
                   style={{ transitionDuration: `${DETAIL_FADE_MS}ms` }}
                   onLoad={markCoverReady}
                   onError={markCoverReady}
+                  unoptimized
                 />
               ) : (
                 <div className="flex h-full items-center justify-center font-jp text-4xl text-text-muted">
