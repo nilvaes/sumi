@@ -1,5 +1,4 @@
 import { AniListUnavailable } from "@/components/anilist-unavailable";
-import { BookmarkTips } from "@/components/bookmarks/bookmark-legend-tip";
 import { Hero } from "@/components/hero";
 import { MediaGrid } from "@/components/media-grid";
 import { Section } from "@/components/section";
@@ -32,7 +31,6 @@ export default async function HomePage() {
     <div className="mx-auto max-w-6xl space-y-16 px-4 py-10">
       <div className="space-y-4">
         <Hero items={data.featured?.media ?? []} />
-        <BookmarkTips />
       </div>
 
       <Section title="Airing now" href="/browse?status=RELEASING">

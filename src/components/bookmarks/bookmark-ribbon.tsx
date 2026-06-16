@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   useTransition,
   type MouseEvent,
 } from "react";
@@ -14,12 +15,24 @@ import {
   removeBookmark,
   setBookmarkStatus,
 } from "@/app/bookmarks/actions";
+import {
+  BookmarkRibbonCoachTip,
+  COACH_TIP_SELECTOR,
+  isFinePointer,
+  RIBBON_HOVER_DELAY_MS,
+} from "@/components/bookmarks/bookmark-ribbon-coach-tip";
 import { useBookmarks } from "@/components/bookmarks/bookmark-provider";
 import {
   BOOKMARK_STATUS_META,
   RIBBON_STATUSES,
 } from "@/lib/bookmarks/config";
 import type { BookmarkStatus } from "@/lib/bookmarks/types";
+import {
+  dismissRibbonTip,
+  isRibbonTipDismissed,
+  ribbonTipServerDismissed,
+  subscribeRibbonTip,
+} from "@/lib/bookmarks/ribbon-tip";
 import { cn } from "@/lib/utils";
 
 /** Inactive ribbon: dark tab, white edge + icons. */
@@ -39,10 +52,46 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
 
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [hoverDelayMet, setHoverDelayMet] = useState(false);
+  const [autoClosed, setAutoClosed] = useState(false);
   const [pending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const tipDismissed = useSyncExternalStore(
+    subscribeRibbonTip,
+    isRibbonTipDismissed,
+    ribbonTipServerDismissed,
+  );
 
   const expanded = hovered || pinned;
+  const coachWanted =
+    !tipDismissed &&
+    (typeof window !== "undefined" && isFinePointer()
+      ? hovered && hoverDelayMet
+      : pinned);
+  const coachVisible = coachWanted && !autoClosed;
+
+  const clearHoverTimer = useCallback(() => {
+    clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = undefined;
+  }, []);
+
+  const onRibbonMouseEnter = useCallback(() => {
+    setHovered(true);
+    if (tipDismissed || typeof window === "undefined" || !isFinePointer()) return;
+    clearHoverTimer();
+    hoverTimerRef.current = setTimeout(() => {
+      setHoverDelayMet(true);
+    }, RIBBON_HOVER_DELAY_MS);
+  }, [clearHoverTimer, tipDismissed]);
+
+  const onRibbonMouseLeave = useCallback(() => {
+    setHovered(false);
+    setHoverDelayMet(false);
+    setAutoClosed(false);
+    clearHoverTimer();
+  }, [clearHoverTimer]);
   const compact = size === "sm";
 
   const width = compact ? "w-7" : "w-9";
@@ -58,9 +107,12 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
   useEffect(() => {
     if (!pinned) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) {
-        setPinned(false);
-      }
+      const target = e.target;
+      if (!(target instanceof Node)) return;
+      if (rootRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest(COACH_TIP_SELECTOR)) return;
+      setPinned(false);
+      setAutoClosed(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -92,6 +144,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
             await setBookmarkStatus(anilistId, status);
             patch(anilistId, status);
           }
+          dismissRibbonTip();
           setPinned(false);
         } catch {
           // Server action failed — provider state unchanged.
@@ -109,8 +162,8 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
     <div
       ref={rootRef}
       className={cn("absolute top-0 right-2 z-20", className)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={onRibbonMouseEnter}
+      onMouseLeave={onRibbonMouseLeave}
       aria-label={
         isLoggedIn
           ? active
@@ -203,6 +256,15 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
           </div>
         </div>
       </div>
+
+      {coachVisible && (
+        <BookmarkRibbonCoachTip
+          anchorRef={rootRef}
+          isLoggedIn={isLoggedIn}
+          anilistId={anilistId}
+          onAutoClose={() => setAutoClosed(true)}
+        />
+      )}
     </div>
   );
 }
