@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useState, type CSSProperties, type MouseEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { BOOKMARK_STATUS_META, RIBBON_STATUSES } from "@/lib/bookmarks/config";
 import { dismissRibbonTip } from "@/lib/bookmarks/ribbon-tip";
@@ -56,7 +56,7 @@ function computeTooltipStyle(rect: DOMRect): CSSProperties {
     };
   }
 
-  let left = rect.left - 8;
+  let left = rect.left;
   if (left - TOOLTIP_WIDTH < VIEWPORT_PAD) {
     left = VIEWPORT_PAD + TOOLTIP_WIDTH;
   }
@@ -79,11 +79,13 @@ export function BookmarkRibbonCoachTip({
   isLoggedIn,
   anilistId,
   onAutoClose,
+  onMouseLeave,
 }: {
   anchorRef: RefObject<HTMLElement | null>;
   isLoggedIn: boolean;
   anilistId: number;
   onAutoClose: () => void;
+  onMouseLeave?: (e: MouseEvent<HTMLDivElement>) => void;
 }) {
   const [opacity, setOpacity] = useState(0);
   const [style, setStyle] = useState<CSSProperties | null>(null);
@@ -131,6 +133,7 @@ export function BookmarkRibbonCoachTip({
     <div
       data-bookmark-coach-tip=""
       onPointerDown={(e) => e.stopPropagation()}
+      onMouseLeave={onMouseLeave}
       className={cn(
         "fixed z-[70] w-52 rounded-md border border-border bg-bg px-3 py-2.5 shadow-lg",
         "transition-opacity duration-300 ease-out motion-reduce:transition-none",

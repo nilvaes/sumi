@@ -50,27 +50,29 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
   const current = map[anilistId] ?? null;
   const active = current !== null;
 
-  const [hovered, setHovered] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const [hoverDelayMet, setHoverDelayMet] = useState(false);
-  const [autoClosed, setAutoClosed] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
   const tipDismissed = useSyncExternalStore(
     subscribeRibbonTip,
     isRibbonTipDismissed,
     ribbonTipServerDismissed,
   );
 
+  const hasBookmarks = Object.keys(map).length > 0;
+  const coachEligible = !tipDismissed && (!isLoggedIn || !hasBookmarks);
+
+  const [hovered, setHovered] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [hoverReady, setHoverReady] = useState(false);
+  const [autoClosed, setAutoClosed] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   const expanded = hovered || pinned;
   const coachWanted =
-    !tipDismissed &&
-    (typeof window !== "undefined" && isFinePointer()
-      ? hovered && hoverDelayMet
-      : pinned);
-  const coachVisible = coachWanted && !autoClosed;
+    coachEligible &&
+    !autoClosed &&
+    (typeof window !== "undefined" && isFinePointer() ? hoverReady : pinned);
+  const coachVisible = coachWanted;
 
   const clearHoverTimer = useCallback(() => {
     clearTimeout(hoverTimerRef.current);
@@ -79,19 +81,33 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
 
   const onRibbonMouseEnter = useCallback(() => {
     setHovered(true);
-    if (tipDismissed || typeof window === "undefined" || !isFinePointer()) return;
+    if (!coachEligible || typeof window === "undefined" || !isFinePointer()) return;
     clearHoverTimer();
     hoverTimerRef.current = setTimeout(() => {
-      setHoverDelayMet(true);
+      setHoverReady(true);
     }, RIBBON_HOVER_DELAY_MS);
-  }, [clearHoverTimer, tipDismissed]);
+  }, [clearHoverTimer, coachEligible]);
 
-  const onRibbonMouseLeave = useCallback(() => {
-    setHovered(false);
-    setHoverDelayMet(false);
-    setAutoClosed(false);
-    clearHoverTimer();
-  }, [clearHoverTimer]);
+  const onRibbonMouseLeave = useCallback(
+    (e: MouseEvent<HTMLDivElement>) => {
+      setHovered(false);
+      clearHoverTimer();
+      const related = e.relatedTarget;
+      if (related instanceof Element && related.closest(COACH_TIP_SELECTOR)) return;
+      setHoverReady(false);
+      setAutoClosed(false);
+    },
+    [clearHoverTimer],
+  );
+
+  const onTipMouseLeave = useCallback(
+    (e: MouseEvent<HTMLDivElement>) => {
+      const related = e.relatedTarget;
+      if (related instanceof Node && rootRef.current?.contains(related)) return;
+      setHoverReady(false);
+    },
+    [],
+  );
   const compact = size === "sm";
 
   const width = compact ? "w-7" : "w-9";
@@ -145,6 +161,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
             patch(anilistId, status);
           }
           dismissRibbonTip();
+          setHoverReady(false);
           setPinned(false);
         } catch {
           // Server action failed — provider state unchanged.
@@ -262,6 +279,7 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
           anchorRef={rootRef}
           isLoggedIn={isLoggedIn}
           anilistId={anilistId}
+          onMouseLeave={onTipMouseLeave}
           onAutoClose={() => setAutoClosed(true)}
         />
       )}
