@@ -1,11 +1,13 @@
 import { ImageResponse } from "next/og";
+import { loadNotoSansJP } from "@/lib/og-fonts";
 
 export const alt = "Sumi — Track & Explore New Anime";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Warm-dark editorial OG card. Latin-only so it renders without bundling a CJK font.
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  const font = await loadNotoSansJP("墨Sumi");
+
   return new ImageResponse(
     (
       <div
@@ -24,8 +26,18 @@ export default function OpengraphImage() {
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div
             style={{
-              width: "18px",
-              height: "18px",
+              fontSize: "36px",
+              fontFamily: "Noto Sans JP",
+              fontWeight: 500,
+              color: "#e8e4df",
+            }}
+          >
+            墨
+          </div>
+          <div
+            style={{
+              width: "6px",
+              height: "6px",
               borderRadius: "9999px",
               background: "#c45c3e",
             }}
@@ -87,6 +99,9 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: "Noto Sans JP", data: font, style: "normal", weight: 500 }],
+    },
   );
 }
