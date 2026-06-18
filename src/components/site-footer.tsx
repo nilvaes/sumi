@@ -15,6 +15,12 @@ export function SiteFooter() {
           >
             About
           </Link>
+          <Link
+            href="/privacy"
+            className="text-text-muted transition-colors hover:text-text"
+          >
+            Privacy
+          </Link>
         </p>
         <p>
           Data from{" "}

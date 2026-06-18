@@ -88,6 +88,13 @@ export default async function LoginPage({
       </div>
 
       <footer className="space-y-4">
+        <p className="text-center text-xs leading-relaxed text-text-muted">
+          By signing in, you agree to our{" "}
+          <Link href="/privacy" className="text-text transition-colors hover:text-brand">
+            Privacy Policy
+          </Link>
+          .
+        </p>
         <p className="text-center text-xs text-text-muted">
           <Link href="/" className="transition-colors hover:text-text">
             ← Back to home
