@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { UserMenu } from "@/components/auth/user-menu";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/app/login/actions";
 
 export async function UserNav() {
   const supabase = await createClient();
@@ -19,14 +19,5 @@ export async function UserNav() {
     );
   }
 
-  return (
-    <form action={signOut}>
-      <button
-        type="submit"
-        className="text-sm text-text-muted transition-colors hover:text-text"
-      >
-        Sign out
-      </button>
-    </form>
-  );
+  return <UserMenu />;
 }

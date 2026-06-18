@@ -116,14 +116,23 @@ export function MobileNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
 
             <div className="border-t border-border p-3">
               {isLoggedIn ? (
-                <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface hover:text-text"
+                <div className="flex flex-col gap-1">
+                  <Link
+                    href="/settings"
+                    onClick={closeMenu}
+                    className="rounded-md px-3 py-2.5 text-sm text-text-muted transition-colors hover:bg-surface hover:text-text"
                   >
-                    Sign out
-                  </button>
-                </form>
+                    Settings
+                  </Link>
+                  <form action={signOut}>
+                    <button
+                      type="submit"
+                      className="w-full rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface hover:text-text"
+                    >
+                      Sign out
+                    </button>
+                  </form>
+                </div>
               ) : (
                 <Link
                   href="/login"
