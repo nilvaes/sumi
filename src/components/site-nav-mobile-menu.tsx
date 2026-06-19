@@ -61,7 +61,7 @@ export function MobileNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
       {show &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[60] md:hidden">
+          <div className="fixed inset-0 z-60 md:hidden">
             <button
               type="button"
               className={cn(
@@ -73,8 +73,7 @@ export function MobileNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
             />
             <aside
               className={cn(
-                "absolute inset-y-0 left-0 z-10 flex w-[min(100%,16rem)] flex-col border-r border-border shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none",
-                "bg-[var(--bg)]",
+                "absolute inset-y-0 left-0 z-10 flex w-[min(100%,16rem)] flex-col border-r border-border bg-bg shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none",
                 active ? "translate-x-0" : "-translate-x-full",
               )}
             >

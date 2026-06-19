@@ -135,7 +135,7 @@ export function BookmarkRibbonCoachTip({
       onPointerDown={(e) => e.stopPropagation()}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "fixed z-[70] w-52 rounded-md border border-border bg-bg px-3 py-2.5 shadow-lg",
+        "fixed z-70 w-52 rounded-md border border-border bg-bg px-3 py-2.5 shadow-lg",
         "transition-opacity duration-300 ease-out motion-reduce:transition-none",
       )}
       style={{ ...style, opacity }}

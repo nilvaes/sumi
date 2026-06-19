@@ -8,7 +8,7 @@ export function BookmarkTabs({ active }: { active: BookmarkStatus }) {
     <div
       className={cn(
         "sticky top-14 z-40 ml-[calc(50%-50vw)] w-screen bg-bg/90 py-3 backdrop-blur-md",
-        "supports-[backdrop-filter]:bg-bg/75",
+        "supports-backdrop-filter:bg-bg/75",
       )}
     >
       <div className="mx-auto max-w-6xl px-4">
