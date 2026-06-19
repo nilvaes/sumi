@@ -30,7 +30,7 @@ function HeroSlide({
   const tint = slide.coverImage?.color;
 
   return (
-    <div className="relative h-full w-full shrink-0 basis-full overflow-hidden bg-surface">
+    <div className="relative h-full w-full shrink-0 basis-full overflow-hidden bg-bg">
       {banner ? (
         <Image
           src={banner}
@@ -38,7 +38,7 @@ function HeroSlide({
           fill
           priority={priority}
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-center"
           unoptimized
         />
       ) : (
@@ -48,64 +48,72 @@ function HeroSlide({
         />
       )}
 
-      <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/70 to-transparent" />
-      <div className="absolute inset-0 bg-linear-to-r from-bg/80 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/55 to-bg/10" />
+      <div className="absolute inset-0 bg-linear-to-r from-bg via-bg/75 via-35% to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-l from-bg/90 via-bg/25 via-25% to-transparent" />
 
-      <div className="relative z-1 flex h-full w-full max-w-full flex-col justify-end gap-3 overflow-hidden p-6 pb-14 sm:max-w-2xl sm:p-10 sm:pb-14">
-        {slide.nextAiringEpisode && (
-          <p className="flex items-center gap-2 text-sm text-text-muted">
-            <span aria-hidden className="size-1.5 rounded-full bg-brand" />
-            Episode {slide.nextAiringEpisode.episode} in{" "}
-            {formatCountdown(slide.nextAiringEpisode.timeUntilAiring)}
-          </p>
-        )}
+      <div className="relative z-1 flex h-full w-full flex-col justify-end">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-14 pt-10 sm:px-4 sm:pb-16">
+          <div className="flex max-w-2xl flex-col gap-3">
+            {slide.nextAiringEpisode && (
+              <p className="flex items-center gap-2 text-sm text-text-muted">
+                <span aria-hidden className="size-1.5 rounded-full bg-brand" />
+                Episode {slide.nextAiringEpisode.episode} in{" "}
+                {formatCountdown(slide.nextAiringEpisode.timeUntilAiring)}
+              </p>
+            )}
 
-        {/* Mobile: tap title (and romaji) to open detail — no separate button */}
-        <Link
-          href={`/anime/${slide.id}`}
-          prefetch
-          className="block space-y-1 text-text transition-colors active:text-brand sm:hidden"
-        >
-          <h2 className="line-clamp-2 font-serif text-3xl leading-tight">
-            {title}
-          </h2>
-          {romaji && <p className="line-clamp-1 text-sm text-text-muted">{romaji}</p>}
-        </Link>
+            <Link
+              href={`/anime/${slide.id}`}
+              prefetch
+              className="block space-y-1 text-text transition-colors active:text-brand sm:hidden"
+            >
+              <h2 className="line-clamp-2 font-serif text-3xl leading-tight">
+                {title}
+              </h2>
+              {romaji && (
+                <p className="line-clamp-1 text-sm text-text-muted">{romaji}</p>
+              )}
+            </Link>
 
-        <div className="hidden space-y-1 sm:block">
-          <h2 className="line-clamp-2 font-serif text-3xl leading-tight text-text sm:text-4xl">
-            {title}
-          </h2>
-          {romaji && <p className="line-clamp-1 text-sm text-text-muted">{romaji}</p>}
-        </div>
+            <div className="hidden space-y-1 sm:block">
+              <h2 className="line-clamp-2 font-serif text-3xl leading-tight text-text sm:text-4xl">
+                {title}
+              </h2>
+              {romaji && (
+                <p className="line-clamp-1 text-sm text-text-muted">{romaji}</p>
+              )}
+            </div>
 
-        {genres.length > 0 && (
-          <ul className="flex flex-wrap gap-2 text-xs text-text-muted">
-            {genres.map((g) => (
-              <li
-                key={g}
-                className="rounded-full border border-border px-2.5 py-0.5"
+            {genres.length > 0 && (
+              <ul className="flex flex-wrap gap-2 text-xs text-text-muted">
+                {genres.map((g) => (
+                  <li
+                    key={g}
+                    className="rounded-full border border-border/80 px-2.5 py-0.5"
+                  >
+                    {g}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {synopsis && (
+              <p className="line-clamp-2 max-w-prose text-sm leading-relaxed text-text/90 sm:line-clamp-3">
+                {synopsis}…
+              </p>
+            )}
+
+            <div className="hidden pt-1 sm:block">
+              <Link
+                href={`/anime/${slide.id}`}
+                prefetch
+                className="inline-block rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
               >
-                {g}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {synopsis && (
-          <p className="line-clamp-2 max-w-prose text-sm leading-relaxed text-text/90 sm:line-clamp-3">
-            {synopsis}…
-          </p>
-        )}
-
-        <div className="hidden pt-1 sm:block">
-          <Link
-            href={`/anime/${slide.id}`}
-            prefetch
-            className="inline-block rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-          >
-            View details
-          </Link>
+                View details
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -117,7 +125,6 @@ export function Hero({
 }: {
   items: readonly (HeroFieldsFragment | null)[];
 }) {
-  // Prefer slides with a banner so we never stretch a portrait cover across the hero.
   const slides = items
     .filter((m): m is HeroFieldsFragment => Boolean(m))
     .sort((a, b) => Number(!!b.bannerImage) - Number(!!a.bannerImage));
@@ -251,7 +258,7 @@ export function Hero({
   return (
     <section
       ref={sectionRef}
-      className="group/hero relative h-[380px] touch-pan-y overflow-hidden rounded-lg border border-border sm:h-[420px]"
+      className="group/hero relative h-[min(52vh,440px)] w-full touch-pan-y overflow-hidden sm:h-[min(56vh,500px)]"
       aria-roledescription="carousel"
       aria-label="Featured airing anime"
       onMouseEnter={() => setPaused(true)}
@@ -286,7 +293,7 @@ export function Hero({
             type="button"
             onClick={goPrev}
             aria-label="Previous featured anime"
-            className="absolute top-1/2 left-3 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-bg/70 text-text opacity-0 backdrop-blur-sm transition-opacity group-hover/hero:opacity-100 hover:bg-surface-hover focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none sm:left-4 sm:flex"
+            className="absolute top-1/2 left-4 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-bg/60 text-text opacity-0 backdrop-blur-sm transition-opacity group-hover/hero:opacity-100 hover:bg-surface-hover focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none sm:flex"
           >
             <ChevronLeft className="size-5" aria-hidden />
           </button>
@@ -294,41 +301,39 @@ export function Hero({
             type="button"
             onClick={goNext}
             aria-label="Next featured anime"
-            className="absolute top-1/2 right-3 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-bg/70 text-text opacity-0 backdrop-blur-sm transition-opacity group-hover/hero:opacity-100 hover:bg-surface-hover focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none sm:right-4 sm:flex"
+            className="absolute top-1/2 right-4 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-bg/60 text-text opacity-0 backdrop-blur-sm transition-opacity group-hover/hero:opacity-100 hover:bg-surface-hover focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none sm:flex"
           >
             <ChevronRight className="size-5" aria-hidden />
           </button>
-        </>
-      )}
 
-      {count > 1 && (
-        <nav
-          aria-label="Featured slide controls"
-          className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2 border-t border-border/50 bg-bg/60 px-4 py-3 backdrop-blur-sm sm:justify-end sm:px-10"
-        >
-          <div
-            className="flex gap-2"
-            role="tablist"
-            aria-label="Featured slides"
+          <nav
+            aria-label="Featured slide controls"
+            className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-6xl justify-end px-4 pb-5 sm:px-4 sm:pb-6"
           >
-            {slides.map((slide, i) => (
-              <button
-                key={slide.id}
-                type="button"
-                role="tab"
-                onClick={() => goTo(i)}
-                aria-label={`Show featured anime ${i + 1}`}
-                aria-selected={i === index}
-                className={cn(
-                  "h-1.5 rounded-full transition-all duration-300 ease-out",
-                  i === index
-                    ? "w-6 bg-brand"
-                    : "w-1.5 bg-text-muted/50 hover:bg-text-muted",
-                )}
-              />
-            ))}
-          </div>
-        </nav>
+            <div
+              className="flex gap-2 rounded-full bg-bg/40 px-3 py-2 backdrop-blur-sm"
+              role="tablist"
+              aria-label="Featured slides"
+            >
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  role="tab"
+                  onClick={() => goTo(i)}
+                  aria-label={`Show featured anime ${i + 1}`}
+                  aria-selected={i === index}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-300 ease-out",
+                    i === index
+                      ? "w-6 bg-brand"
+                      : "w-1.5 bg-text-muted/60 hover:bg-text-muted",
+                  )}
+                />
+              ))}
+            </div>
+          </nav>
+        </>
       )}
     </section>
   );

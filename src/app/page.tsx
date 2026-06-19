@@ -28,12 +28,11 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-16 px-4 py-10">
-      <div className="space-y-4">
-        <Hero items={data.featured?.media ?? []} />
-      </div>
+    <>
+      <Hero items={data.featured?.media ?? []} />
 
-      <Section title="Airing now" href="/browse?status=RELEASING">
+      <div className="mx-auto max-w-6xl space-y-16 px-4 py-10">
+        <Section title="Airing now" href="/browse?status=RELEASING">
         <MediaGrid items={data.airing?.media ?? []} />
       </Section>
 
@@ -44,6 +43,7 @@ export default async function HomePage() {
       <Section title="Upcoming" href="/browse?status=NOT_YET_RELEASED">
         <MediaGrid items={data.upcoming?.media ?? []} />
       </Section>
-    </div>
+      </div>
+    </>
   );
 }
