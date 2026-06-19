@@ -48,9 +48,9 @@ function HeroSlide({
         />
       )}
 
-      <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/55 to-bg/10" />
-      <div className="absolute inset-0 bg-linear-to-r from-bg via-bg/75 via-35% to-transparent" />
-      <div className="absolute inset-0 bg-linear-to-l from-bg/90 via-bg/25 via-25% to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/40 via-35% to-transparent" />
+      <div className="absolute inset-y-0 left-0 w-[42%] bg-linear-to-r from-bg via-bg/50 to-transparent" />
+      <div className="absolute inset-y-0 right-0 w-[22%] bg-linear-to-l from-bg/75 to-transparent" />
 
       <div className="relative z-1 flex h-full w-full flex-col justify-end">
         <div className="mx-auto w-full max-w-6xl px-4 pb-14 pt-10 sm:px-4 sm:pb-16">
