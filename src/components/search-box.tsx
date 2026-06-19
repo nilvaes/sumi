@@ -87,7 +87,7 @@ export function SearchBox({ className }: { className?: string }) {
             }}
             placeholder="Search anime…"
             aria-label="Search anime"
-            className="w-full bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none"
+            className="w-full bg-transparent text-base text-text placeholder:text-text-muted focus:outline-none md:text-sm"
           />
         </div>
       </form>
