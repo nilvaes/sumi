@@ -128,7 +128,14 @@ export function Hero({
   const slides = items
     .filter((m): m is HeroFieldsFragment => Boolean(m))
     .sort((a, b) => Number(!!b.bannerImage) - Number(!!a.bannerImage));
-  const [index, setIndex] = useState(0);
+  const count = slides.length;
+  const loop = count > 1;
+  const trackSlides = loop
+    ? [slides[count - 1]!, ...slides, slides[0]!]
+    : slides;
+
+  const [position, setPosition] = useState(loop ? 1 : 0);
+  const [transition, setTransition] = useState(true);
   const [paused, setPaused] = useState(false);
   const [dragPx, setDragPx] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -136,25 +143,63 @@ export function Hero({
     null,
   );
   const sectionRef = useRef<HTMLElement>(null);
-  const count = slides.length;
+
+  const realIndex = loop
+    ? position === 0
+      ? count - 1
+      : position === count + 1
+        ? 0
+        : position - 1
+    : position;
+
+  const jumpWithoutTransition = useCallback((next: number) => {
+    setTransition(false);
+    setPosition(next);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setTransition(true));
+    });
+  }, []);
+
+  const onTrackTransitionEnd = useCallback(() => {
+    if (!loop || dragging) return;
+    if (position === 0) jumpWithoutTransition(count);
+    else if (position === count + 1) jumpWithoutTransition(1);
+  }, [count, dragging, jumpWithoutTransition, loop, position]);
+
+  const goNext = useCallback(() => {
+    if (!loop) return;
+    setTransition(true);
+    setPosition((p) => p + 1);
+    setDragPx(0);
+  }, [loop]);
+
+  const goPrev = useCallback(() => {
+    if (!loop) return;
+    setTransition(true);
+    setPosition((p) => p - 1);
+    setDragPx(0);
+  }, [loop]);
 
   const goTo = useCallback(
-    (next: number) => {
+    (target: number) => {
       if (count === 0) return;
-      setIndex(((next % count) + count) % count);
+      if (!loop) {
+        setPosition(target);
+        setDragPx(0);
+        return;
+      }
+      if (target === realIndex) return;
+      jumpWithoutTransition(target + 1);
       setDragPx(0);
     },
-    [count],
+    [count, jumpWithoutTransition, loop, realIndex],
   );
 
-  const goNext = useCallback(() => goTo(index + 1), [goTo, index]);
-  const goPrev = useCallback(() => goTo(index - 1), [goTo, index]);
-
   useEffect(() => {
-    if (count <= 1 || paused || dragging) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), ROTATE_MS);
+    if (!loop || paused || dragging) return;
+    const id = setInterval(goNext, ROTATE_MS);
     return () => clearInterval(id);
-  }, [count, dragging, paused]);
+  }, [dragging, goNext, loop, paused]);
 
   useEffect(() => {
     if (count <= 1) return;
@@ -215,11 +260,10 @@ export function Hero({
       }
 
       let nextDrag = dx;
-      if (index === 0 && nextDrag > 0) nextDrag *= 0.35;
-      if (index === count - 1 && nextDrag < 0) nextDrag *= 0.35;
+      if (position === 1 && nextDrag > 0) nextDrag *= 0.35;
       setDragPx(nextDrag);
     },
-    [count, index],
+    [count, position],
   );
 
   const onTouchEnd = useCallback(
@@ -253,7 +297,7 @@ export function Hero({
 
   if (slides.length === 0) return null;
 
-  const trackTransform = `translateX(calc(-${index * 100}% + ${dragPx}px))`;
+  const trackTransform = `translateX(calc(-${position * 100}% + ${dragPx}px))`;
 
   return (
     <section
@@ -275,15 +319,20 @@ export function Hero({
       <div
         className={cn(
           "flex h-full will-change-transform ease-out motion-reduce:transition-none",
-          !dragging && "transition-transform",
+          transition && !dragging && "transition-transform",
         )}
         style={{
           transform: trackTransform,
-          transitionDuration: dragging ? "0ms" : `${SLIDE_MS}ms`,
+          transitionDuration: dragging || !transition ? "0ms" : `${SLIDE_MS}ms`,
         }}
+        onTransitionEnd={onTrackTransitionEnd}
       >
-        {slides.map((slide, i) => (
-          <HeroSlide key={slide.id} slide={slide} priority={i === 0} />
+        {trackSlides.map((slide, i) => (
+          <HeroSlide
+            key={`${slide.id}-${i}`}
+            slide={slide}
+            priority={!loop ? i === 0 : i === 1}
+          />
         ))}
       </div>
 
@@ -322,10 +371,10 @@ export function Hero({
                   role="tab"
                   onClick={() => goTo(i)}
                   aria-label={`Show featured anime ${i + 1}`}
-                  aria-selected={i === index}
+                  aria-selected={i === realIndex}
                   className={cn(
                     "h-1.5 rounded-full transition-all duration-300 ease-out",
-                    i === index
+                    i === realIndex
                       ? "w-6 bg-brand"
                       : "w-1.5 bg-text-muted/60 hover:bg-text-muted",
                   )}
