@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   description: "Anime airing over the next seven days, with episode countdowns.",
 };
 
-/** Fetched at request time — avoids build failures when AniList is down (502). */
-export const dynamic = "force-dynamic";
+/** ISR — schedule data refreshed hourly (matches getSchedule fetch cache). */
+export const revalidate = 3600;
 
 export default async function SchedulePage() {
   let entries: Awaited<ReturnType<typeof getWeekSchedule>> = [];
