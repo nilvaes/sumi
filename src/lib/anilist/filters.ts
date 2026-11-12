@@ -96,7 +96,7 @@ export function parseBrowseFilters(params: RawParams): BrowseFilters {
   const format = one(params.format)?.toUpperCase();
   const genre = one(params.genre);
   const year = Number(one(params.year));
-  const search = one(params.search)?.trim();
+  const search = one(params.search)?.trim().slice(0, 100);
 
   return {
     sort:
