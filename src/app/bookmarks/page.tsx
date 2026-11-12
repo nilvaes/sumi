@@ -55,9 +55,9 @@ export default async function BookmarksPage({
 
   if (ids.length > 0) {
     try {
-      const data = await getMediaByIds(ids);
+      const media = await getMediaByIds(ids);
       const byId = new Map(
-        (data.Page?.media ?? [])
+        media
           .filter((m): m is NonNullable<typeof m> => m != null)
           .map((m) => [m.id, m as CardMedia]),
       );

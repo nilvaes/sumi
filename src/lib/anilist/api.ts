@@ -51,9 +51,25 @@ export function getSchedule(start: number, end: number, page = 1) {
   return anilistRequest(ScheduleQuery, { start, end, page }, HOUR);
 }
 
-/** Fetch up to 50 anime by AniList id (bookmark grids). */
-export function getMediaByIds(ids: number[]) {
-  return anilistRequest(MediaByIdsQuery, { ids: ids.slice(0, 50) }, HOUR);
+const MEDIA_BY_IDS_PAGE = 50;
+/** Hard cap so one huge bookmark list can't fan out into many AniList calls. */
+const MEDIA_BY_IDS_MAX = 500;
+
+/**
+ * Fetch anime by AniList id (bookmark grids). AniList pages are capped at 50, so
+ * larger lists are fetched in 50-id chunks (through the throttled client).
+ */
+export async function getMediaByIds(ids: number[]) {
+  const unique = [...new Set(ids)].slice(0, MEDIA_BY_IDS_MAX);
+  const chunks: number[][] = [];
+  for (let i = 0; i < unique.length; i += MEDIA_BY_IDS_PAGE) {
+    chunks.push(unique.slice(i, i + MEDIA_BY_IDS_PAGE));
+  }
+
+  const pages = await Promise.all(
+    chunks.map((chunk) => anilistRequest(MediaByIdsQuery, { ids: chunk }, HOUR)),
+  );
+  return pages.flatMap((p) => p.Page?.media ?? []);
 }
 
 /**
