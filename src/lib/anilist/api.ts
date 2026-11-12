@@ -132,8 +132,13 @@ export type ScheduleEntry = {
  * week can't fan out into many AniList calls.
  */
 export async function getWeekSchedule(): Promise<ScheduleEntry[]> {
-  const start = Math.floor(Date.now() / 1000);
-  const end = start + 7 * 24 * HOUR;
+  const now = Math.floor(Date.now() / 1000);
+  const until = now + 7 * 24 * HOUR;
+  // Query an hour-aligned window so the request is identical for a whole hour
+  // and can be served from cache (using `now` made every request unique).
+  // Entries outside [now, until) are trimmed below.
+  const start = Math.floor(now / HOUR) * HOUR;
+  const end = start + 7 * 24 * HOUR + HOUR;
   const MAX_PAGES = 6;
 
   const entries: ScheduleEntry[] = [];
@@ -142,6 +147,7 @@ export async function getWeekSchedule(): Promise<ScheduleEntry[]> {
     const schedules = data.Page?.airingSchedules ?? [];
     for (const s of schedules) {
       if (!s?.media || s.media.isAdult) continue;
+      if (s.airingAt < now || s.airingAt >= until) continue;
       entries.push({
         id: s.id,
         airingAt: s.airingAt,

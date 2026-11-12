@@ -46,7 +46,7 @@ type Props = {
 };
 
 export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
-  const { map, isLoggedIn, patch } = useBookmarks();
+  const { map, isLoggedIn, patch, notify } = useBookmarks();
   const current = map[anilistId] ?? null;
   const active = current !== null;
 
@@ -151,24 +151,30 @@ export function BookmarkRibbon({ anilistId, size = "sm", className }: Props) {
     (status: BookmarkStatus) => {
       if (!isLoggedIn || pending) return;
 
+      const previous = current;
+      const removing = previous === status;
+
+      // Optimistic: show the new state immediately, roll back if the save fails.
+      patch(anilistId, removing ? null : status);
+      dismissRibbonTip();
+      setHoverReady(false);
+      setPinned(false);
+
       startTransition(async () => {
         try {
-          if (current === status) {
-            await removeBookmark(anilistId);
-            patch(anilistId, null);
-          } else {
-            await setBookmarkStatus(anilistId, status);
-            patch(anilistId, status);
-          }
-          dismissRibbonTip();
-          setHoverReady(false);
-          setPinned(false);
+          if (removing) await removeBookmark(anilistId);
+          else await setBookmarkStatus(anilistId, status);
         } catch {
-          // Server action failed — provider state unchanged.
+          patch(anilistId, previous);
+          notify(
+            removing
+              ? "Couldn't remove that bookmark. Please try again."
+              : "Couldn't save that bookmark. Please try again.",
+          );
         }
       });
     },
-    [anilistId, current, isLoggedIn, patch, pending],
+    [anilistId, current, isLoggedIn, notify, patch, pending],
   );
 
   const statusLabel = current

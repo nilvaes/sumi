@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import type { SearchAnime } from "@/lib/supabase/search";
@@ -22,7 +22,11 @@ export function SearchBox({ className }: { className?: string }) {
   const [term, setTerm] = useState("");
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
+  /** Highlighted suggestion for keyboard navigation (-1 = none). */
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const listId = useId();
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(term.trim()), 250);
@@ -53,11 +57,55 @@ export function SearchBox({ className }: { className?: string }) {
     const q = term.trim();
     if (!q) return;
     setOpen(false);
+    setActiveIndex(-1);
     router.push(`/search?q=${encodeURIComponent(q)}`);
   }
 
   const results = (data?.results ?? []).slice(0, 6);
   const showDropdown = open && debounced.length >= 2;
+  // Options = each result plus the trailing "See all results" row.
+  const optionCount = results.length > 0 ? results.length + 1 : 0;
+  // Results can change under the highlight while typing; never point past the end.
+  const active = showDropdown && activeIndex < optionCount ? activeIndex : -1;
+  const optionId = (i: number) => `${listId}-option-${i}`;
+
+  useEffect(() => {
+    if (active < 0) return;
+    listRef.current
+      ?.querySelector(`[data-index="${active}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [active]);
+
+  function openResult(m: SearchAnime) {
+    setOpen(false);
+    setTerm("");
+    setActiveIndex(-1);
+    router.push(`/anime/${m.anilist_id}`);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
+      e.currentTarget.blur();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (optionCount === 0) return;
+      e.preventDefault();
+      setOpen(true);
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      // Wraps around; from "nothing selected", Up goes to the last row.
+      const from = active < 0 ? (step === 1 ? -1 : optionCount) : active;
+      setActiveIndex((from + step + optionCount) % optionCount);
+      return;
+    }
+    if (e.key === "Enter" && active >= 0) {
+      e.preventDefault();
+      if (active < results.length) openResult(results[active]);
+      else goToAll();
+    }
+  }
 
   return (
     <div
@@ -77,16 +125,17 @@ export function SearchBox({ className }: { className?: string }) {
             onChange={(e) => {
               setTerm(e.target.value);
               setOpen(true);
+              setActiveIndex(-1);
             }}
             onFocus={() => setOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setOpen(false);
-                e.currentTarget.blur();
-              }
-            }}
+            onKeyDown={onKeyDown}
             placeholder="Search anime…"
             aria-label="Search anime"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showDropdown && optionCount > 0}
+            aria-controls={listId}
+            aria-activedescendant={active >= 0 ? optionId(active) : undefined}
             className="w-full bg-transparent text-base text-text placeholder:text-text-muted focus:outline-none md:text-sm"
           />
         </div>
@@ -99,20 +148,38 @@ export function SearchBox({ className }: { className?: string }) {
           ) : results.length === 0 ? (
             <p className="px-3 py-3 text-sm text-text-muted">No results.</p>
           ) : (
-            <ul className="max-h-[70vh] overflow-y-auto">
-              {results.map((m) => {
+            <ul
+              ref={listRef}
+              id={listId}
+              role="listbox"
+              aria-label="Search suggestions"
+              className="max-h-[70vh] overflow-y-auto"
+            >
+              {results.map((m, i) => {
                 const title =
                   m.title_english ?? m.title_romaji ?? "Untitled";
                 return (
-                  <li key={m.anilist_id}>
+                  <li
+                    key={m.anilist_id}
+                    id={optionId(i)}
+                    role="option"
+                    aria-selected={active === i}
+                    data-index={i}
+                    onMouseEnter={() => setActiveIndex(i)}
+                  >
                     <Link
                       href={`/anime/${m.anilist_id}`}
                       prefetch
+                      tabIndex={-1}
                       onClick={() => {
                         setOpen(false);
                         setTerm("");
+                        setActiveIndex(-1);
                       }}
-                      className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-surface-hover"
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 transition-colors",
+                        active === i && "bg-brand/10 shadow-[inset_3px_0_0_0_var(--brand)]",
+                      )}
                     >
                       <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded bg-surface">
                         {m.cover_image && (
@@ -138,11 +205,22 @@ export function SearchBox({ className }: { className?: string }) {
                   </li>
                 );
               })}
-              <li className="border-t border-border">
+              <li
+                id={optionId(results.length)}
+                role="option"
+                aria-selected={active === results.length}
+                data-index={results.length}
+                onMouseEnter={() => setActiveIndex(results.length)}
+                className="border-t border-border"
+              >
                 <button
                   type="button"
+                  tabIndex={-1}
                   onClick={goToAll}
-                  className="w-full px-3 py-2 text-left text-xs text-brand transition-colors hover:bg-surface-hover"
+                  className={cn(
+                    "w-full px-3 py-2 text-left text-xs text-brand transition-colors",
+                    active === results.length && "bg-brand/10 shadow-[inset_3px_0_0_0_var(--brand)]",
+                  )}
                 >
                   See all results for “{debounced}”
                 </button>

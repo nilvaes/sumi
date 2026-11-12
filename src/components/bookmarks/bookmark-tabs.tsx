@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookmarkTabCount } from "@/components/bookmarks/bookmark-tab-count";
 import { BOOKMARK_STATUS_META } from "@/lib/bookmarks/config";
 import { BOOKMARK_TABS, type BookmarkStatus } from "@/lib/bookmarks/types";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ export function BookmarkTabs({ active }: { active: BookmarkStatus }) {
                   aria-hidden
                 />
                 <span className="truncate">{label}</span>
+                <BookmarkTabCount status={id} />
               </Link>
             </div>
           );
