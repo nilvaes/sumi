@@ -1,7 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
+import { useBookmarks } from "@/components/bookmarks/bookmark-provider";
 import type { ScheduleEntry } from "@/lib/anilist/api";
+import {
+  getMyShows,
+  getMyShowsServer,
+  setMyShows,
+  subscribeMyShows,
+} from "@/lib/schedule/my-shows-pref";
+import { cn } from "@/lib/utils";
 import { ScheduleEpisodeCard } from "./schedule-episode-card";
 
 type DayGroup = { key: string; date: Date; entries: ScheduleEntry[] };
@@ -65,10 +74,26 @@ function dayLabel(date: Date, now: Date): string {
 
 export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
   const now = useNow();
+  const { map: bookmarks, isLoggedIn } = useBookmarks();
+  const myShowsPref = useSyncExternalStore(
+    subscribeMyShows,
+    getMyShows,
+    getMyShowsServer,
+  );
+  // Only signed-in users have a Watching list to filter by.
+  const myShows = isLoggedIn && myShowsPref;
+
+  const visible = useMemo(
+    () =>
+      myShows
+        ? entries.filter((e) => bookmarks[e.media.id] === "watching")
+        : entries,
+    [entries, bookmarks, myShows],
+  );
 
   const groups = useMemo<DayGroup[]>(() => {
     const map = new Map<string, DayGroup>();
-    for (const e of entries) {
+    for (const e of visible) {
       const date = new Date(e.airingAt * 1000);
       const key = dayKey(date);
       const group = map.get(key);
@@ -76,7 +101,11 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
       else map.set(key, { key, date, entries: [e] });
     }
     return [...map.values()];
-  }, [entries]);
+  }, [visible]);
+
+  const filter = isLoggedIn ? (
+    <ScheduleFilter myShows={myShows} onChange={setMyShows} />
+  ) : null;
 
   if (now === null) {
     return (
@@ -100,9 +129,26 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
 
   if (groups.length === 0) {
     return (
-      <p className="py-12 text-center text-sm text-text-muted">
-        Nothing scheduled in the next week.
-      </p>
+      <div className="space-y-10">
+        {filter}
+        {myShows ? (
+          <div className="space-y-4 py-12 text-center">
+            <p className="text-sm text-text-muted">
+              None of the anime in your Watching list air in the next seven days.
+            </p>
+            <Link
+              href="/bookmarks?tab=watching"
+              className="text-sm text-brand transition-colors hover:text-brand-hover"
+            >
+              View your Watching list →
+            </Link>
+          </div>
+        ) : (
+          <p className="py-12 text-center text-sm text-text-muted">
+            Nothing scheduled in the next week.
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -110,6 +156,7 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
 
   return (
     <div className="space-y-16">
+      {filter}
       {groups.map((group) => (
         <section key={group.key} className="space-y-5">
           <h2 className="font-serif text-2xl text-text">
@@ -124,6 +171,54 @@ export function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
           </ul>
         </section>
       ))}
+    </div>
+  );
+}
+
+/** "All anime / My shows" switch (signed-in users only). */
+function ScheduleFilter({
+  myShows,
+  onChange,
+}: {
+  myShows: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  const options = [
+    { value: false, label: "All anime" },
+    { value: true, label: "My shows" },
+  ];
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div
+        role="group"
+        aria-label="Which anime to show"
+        className="inline-flex overflow-hidden rounded-sm border border-border bg-surface"
+      >
+        {options.map((o) => {
+          const selected = o.value === myShows;
+          return (
+            <button
+              key={o.label}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(o.value)}
+              className={cn(
+                "px-4 py-2 text-sm transition-colors",
+                selected
+                  ? "bg-bg font-medium text-text"
+                  : "text-text-muted hover:bg-surface-hover hover:text-text",
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      {myShows && (
+        <p className="text-xs text-text-muted">
+          Showing only anime in your Watching list.
+        </p>
+      )}
     </div>
   );
 }
