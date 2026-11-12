@@ -26,7 +26,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  // Refreshes an expiring session (writing the new cookies above) and verifies
+  // the access token. With the project's asymmetric signing keys this is checked
+  // locally against Supabase's cached public key, so a normal page view no
+  // longer waits on a round trip to the Auth server (getUser() always made one).
+  await supabase.auth.getClaims();
 
   return supabaseResponse;
 }
