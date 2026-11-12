@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loginErrorMessage } from "@/lib/auth/login-errors";
+import { safeNextPath } from "@/lib/auth/safe-next";
 import { signInWithEmail, signInWithGoogle } from "./actions";
 
 export const metadata: Metadata = {
@@ -23,6 +24,9 @@ export default async function LoginPage({
   const sp = await searchParams;
   const sent = flag(sp, "sent");
   const errorMessage = loginErrorMessage(sp.error);
+  const next = safeNextPath(Array.isArray(sp.next) ? sp.next[0] : sp.next);
+  const nextField =
+    next !== "/" ? <input type="hidden" name="next" value={next} /> : null;
 
   return (
     <div className="mx-auto max-w-sm space-y-8 px-4 py-16">
@@ -46,6 +50,7 @@ export default async function LoginPage({
       )}
 
       <form action={signInWithGoogle}>
+        {nextField}
         <button
           type="submit"
           className="w-full rounded-md border border-border bg-surface px-4 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-hover"
@@ -62,6 +67,7 @@ export default async function LoginPage({
         </div>
 
         <form action={signInWithEmail} className="space-y-3">
+          {nextField}
           <label className="block space-y-1.5">
             <span className="text-sm text-text-muted">Email</span>
             <input

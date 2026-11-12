@@ -1,13 +1,38 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuthCallbackUrl } from "@/lib/app-origin";
 import { classifyEmailSendFailure } from "@/lib/auth/login-errors";
+import { NEXT_COOKIE, safeNextPath } from "@/lib/auth/safe-next";
 import { createClient } from "@/lib/supabase/server";
 
-export async function signInWithGoogle() {
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Remember where to send the user after the OAuth / magic-link round trip.
+ * Kept in a short-lived cookie so the redirect URL sent to Supabase stays exactly
+ * `/auth/callback` (matching the dashboard Redirect URL allowlist).
+ */
+async function rememberNext(formData: FormData) {
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  const cookieStore = await cookies();
+  if (next === "/") {
+    cookieStore.delete(NEXT_COOKIE);
+    return;
+  }
+  cookieStore.set(NEXT_COOKIE, next, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 15,
+  });
+}
+
+export async function signInWithGoogle(formData: FormData) {
+  await rememberNext(formData);
   const supabase = await createClient();
   const redirectTo = getAuthCallbackUrl(await headers());
 
@@ -24,8 +49,11 @@ export async function signInWithGoogle() {
 
 export async function signInWithEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
-  if (!email) redirect("/login?error=email");
+  if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
+    redirect("/login?error=email");
+  }
 
+  await rememberNext(formData);
   const h = await headers();
   const supabase = await createClient();
   const emailRedirectTo = getAuthCallbackUrl(h);

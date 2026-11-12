@@ -45,6 +45,8 @@ export type MediaRelation =
   | 'PARENT'
   /** Released before the relation */
   | 'PREQUEL'
+  /** Version 3 only. The media is set in the same universe as another media */
+  | 'SAME_UNIVERSE'
   /** Released after the relation */
   | 'SEQUEL'
   /** A side story of the parent media */
@@ -142,7 +144,7 @@ export type AnimeDetailQueryVariables = Exact<{
 }>;
 
 
-export type AnimeDetailQuery = { Media: { id: number, description: string | null, bannerImage: string | null, format: MediaFormat | null, status: MediaStatus | null, episodes: number | null, duration: number | null, season: MediaSeason | null, seasonYear: number | null, averageScore: number | null, meanScore: number | null, popularity: number | null, favourites: number | null, genres: Array<string | null> | null, title: { romaji: string | null, english: string | null, native: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, studios: { nodes: Array<{ id: number, name: string } | null> | null } | null, trailer: { id: string | null, site: string | null } | null, externalLinks: Array<{ id: number, url: string | null, site: string } | null> | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null, relations: { edges: Array<{ relationType: MediaRelation | null, node: { id: number, type: MediaType | null, title: { romaji: string | null } | null, coverImage: { large: string | null } | null } | null } | null> | null } | null } | null };
+export type AnimeDetailQuery = { Media: { id: number, description: string | null, bannerImage: string | null, format: MediaFormat | null, status: MediaStatus | null, episodes: number | null, duration: number | null, season: MediaSeason | null, seasonYear: number | null, averageScore: number | null, meanScore: number | null, popularity: number | null, favourites: number | null, genres: Array<string | null> | null, isAdult: boolean | null, title: { romaji: string | null, english: string | null, native: string | null } | null, coverImage: { extraLarge: string | null, color: string | null } | null, studios: { nodes: Array<{ id: number, name: string } | null> | null } | null, trailer: { id: string | null, site: string | null } | null, externalLinks: Array<{ id: number, url: string | null, site: string } | null> | null, nextAiringEpisode: { episode: number, airingAt: number, timeUntilAiring: number } | null, relations: { edges: Array<{ relationType: MediaRelation | null, node: { id: number, type: MediaType | null, isAdult: boolean | null, title: { romaji: string | null } | null, coverImage: { large: string | null } | null } | null } | null> | null } | null } | null };
 
 export type BrowseQueryVariables = Exact<{
   page?: number | null | undefined;
@@ -345,6 +347,7 @@ export const AnimeDetailDocument = new TypedDocumentString(`
     popularity
     favourites
     genres
+    isAdult
     studios(isMain: true) {
       nodes {
         id
@@ -371,6 +374,7 @@ export const AnimeDetailDocument = new TypedDocumentString(`
         node {
           id
           type
+          isAdult
           title {
             romaji
           }

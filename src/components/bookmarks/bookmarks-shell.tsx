@@ -1,13 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { getBookmarkMapForUser } from "@/lib/bookmarks/db";
+import { getCurrentUser } from "@/lib/supabase/user";
 import { BookmarkProvider } from "./bookmark-provider";
 
 /** Loads bookmark state once per request for signed-in users. */
 export async function BookmarksShell({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   let initialMap = {};
   if (user) {

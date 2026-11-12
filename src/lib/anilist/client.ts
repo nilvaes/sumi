@@ -13,16 +13,29 @@ const ANILIST_API_URL =
 
 const MIN_INTERVAL_MS = 700;
 const MAX_RETRIES = 3;
+/**
+ * Max requests waiting in the throttle queue. At 700ms spacing, 60 queued calls
+ * is ~42s of backlog; beyond that we fail fast (AniListError → "unavailable" UI)
+ * instead of letting a flood of uncached queries stall every page on the instance
+ * until the function times out.
+ */
+const MAX_QUEUED = 60;
 
 let lastRequestAt = 0;
 let queue: Promise<unknown> = Promise.resolve();
+let queued = 0;
 
 function spaceRequests(): Promise<void> {
+  if (queued >= MAX_QUEUED) {
+    return Promise.reject(new AniListError("AniList request queue is full"));
+  }
+  queued++;
   const run = () =>
     new Promise<void>((resolve) => {
       const delay = Math.max(0, MIN_INTERVAL_MS - (Date.now() - lastRequestAt));
       setTimeout(() => {
         lastRequestAt = Date.now();
+        queued--;
         resolve();
       }, delay);
     });

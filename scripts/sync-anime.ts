@@ -54,6 +54,7 @@ type Entry = {
   animeSeason?: { season?: string; year?: number | null };
   picture?: string | null;
   synonyms?: string[];
+  tags?: string[];
 };
 
 const FORMATS = new Set([
@@ -74,9 +75,16 @@ function anilistId(sources: string[]): number | null {
   return null;
 }
 
+/** The dataset has no isAdult flag; adult titles carry these tags. */
+const ADULT_TAGS = new Set(["hentai", "erotic game", "pornography"]);
+
+function isAdult(e: Entry): boolean {
+  return (e.tags ?? []).some((t) => ADULT_TAGS.has(t.toLowerCase()));
+}
+
 function toRow(e: Entry) {
   const id = anilistId(e.sources);
-  if (id === null) return null;
+  if (id === null || isAdult(e)) return null;
   const format = FORMATS.has(e.type) ? e.type : null;
   return {
     anilist_id: id,

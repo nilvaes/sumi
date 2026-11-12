@@ -1,14 +1,11 @@
 import Link from "next/link";
 import { UserNav } from "@/components/auth/user-nav";
 import { MobileNavMenu } from "@/components/site-nav-mobile-menu";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/user";
 import { SearchBox } from "./search-box";
 
 export async function SiteNav() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   const isLoggedIn = !!user;
 

@@ -93,8 +93,12 @@ cp .env.example .env.local
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run the full [`supabase/schema.sql`](supabase/schema.sql)
-   (table, `pg_trgm` index, `search_anime()` function, RLS read policy).
+   (tables, `pg_trgm` index, `search_anime()` function, RLS policies). The file is
+   idempotent, so re-running it is safe.
 3. Fill Supabase keys in `.env.local`.
+
+**Existing projects:** apply new files in [`supabase/migrations/`](supabase/migrations)
+in order (SQL Editor or `supabase db push`) instead of re-running the full schema.
 
 ### 4. Sync the search catalog
 
@@ -163,8 +167,10 @@ In the Vercel project → **Settings → Environment Variables**, add the same k
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (needed if you run sync from CI later; not required for
-  the web app runtime unless you add a sync API route)
+- `SUPABASE_SERVICE_ROLE_KEY` — **required at runtime** for Settings → Delete account
+  (server-only; never prefix it with `NEXT_PUBLIC_`)
+- `NEXT_PUBLIC_SITE_URL` — your production URL; used as the OAuth / magic-link
+  redirect origin in production
 - `ANILIST_API_URL` (optional)
 
 Apply to **Production** (and Preview if you want PR previews to work with search).
