@@ -38,7 +38,6 @@ export function ScheduleEpisodeCard({
             fill
             sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 180px"
             className="object-cover"
-            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center font-jp text-3xl text-text-muted">

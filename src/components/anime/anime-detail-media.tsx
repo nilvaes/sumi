@@ -78,7 +78,6 @@ export function AnimeDetailMedia({
                   style={{ transitionDuration: `${DETAIL_FADE_MS}ms` }}
                   onLoad={markCoverReady}
                   onError={markCoverReady}
-                  unoptimized
                 />
               ) : (
                 <div className="flex h-full items-center justify-center font-jp text-4xl text-text-muted">
