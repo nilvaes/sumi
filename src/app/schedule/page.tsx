@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Anime airing over the next seven days, with episode countdowns.",
 };
 
-/** ISR — schedule data refreshed hourly (matches getSchedule fetch cache). */
+/** Schedule data refreshed hourly (matches the getSchedule cache window). */
 export const revalidate = 3600;
 
 export default async function SchedulePage() {

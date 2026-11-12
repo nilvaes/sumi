@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { unstable_cache } from "next/cache";
 import type { TypedDocumentString } from "./gql/graphql";
 
 const ANILIST_API_URL =
@@ -8,7 +10,8 @@ const ANILIST_API_URL =
   - Requests are serialized and spaced (server-side throttle) so a traffic spike
     can't blow AniList's budget (~30 req/min while degraded, 90 normally).
   - A 429 is retried using the Retry-After header, falling back to exponential
-    backoff. Reads are cached by Next on top of this, so real outbound calls are rare.
+    backoff. Reads are cached (see anilistRequest) in front of the throttle, so
+    real outbound calls are rare and cache hits never wait.
 */
 
 const MIN_INTERVAL_MS = 700;
@@ -44,9 +47,7 @@ function spaceRequests(): Promise<void> {
   return next;
 }
 
-type FetchInit = RequestInit & { next?: { revalidate?: number } };
-
-async function throttledFetch(url: string, init: FetchInit): Promise<Response> {
+async function throttledFetch(url: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
     await spaceRequests();
     const res = await fetch(url, init);
@@ -66,23 +67,44 @@ export class AniListError extends Error {}
 /**
  * Execute a typed AniList query.
  *
+ * The cache is checked *before* the throttle: cached responses return
+ * immediately, and only real outbound calls wait in the 700ms-spaced queue.
+ * (Previously the throttle ran first and `fetch`'s cache was checked after,
+ * so even cache hits queued — 10 concurrent cached requests took ~6s.)
+ *
+ * Responses are stored in Next's data cache via `unstable_cache`, which
+ * persists across serverless instances on Vercel. Errors are never cached.
+ *
  * @param document  A TypedDocumentString produced by graphql-codegen.
  * @param variables Query variables (typed against the document).
- * @param revalidate Seconds Next should cache this response (default 1h).
+ * @param revalidate Seconds to cache the response (default 1h). `0` skips the
+ *   cache entirely — used by the sync scripts, which run outside Next.
  */
 export async function anilistRequest<TResult, TVariables>(
   document: TypedDocumentString<TResult, TVariables>,
   variables?: TVariables,
   revalidate = 3600,
 ): Promise<TResult> {
+  const body = JSON.stringify({ query: document.toString(), variables });
+  if (revalidate <= 0) return executeRequest<TResult>(body);
+
+  const key = createHash("sha256").update(body).digest("hex");
+  return unstable_cache(() => executeRequest<TResult>(body), ["anilist", key], {
+    revalidate,
+    tags: ["anilist"],
+  })();
+}
+
+async function executeRequest<TResult>(body: string): Promise<TResult> {
   const res = await throttledFetch(ANILIST_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify({ query: document.toString(), variables }),
-    next: { revalidate },
+    body,
+    // Caching happens in anilistRequest(); don't cache the raw fetch twice.
+    cache: "no-store",
   });
 
   if (!res.ok) {
