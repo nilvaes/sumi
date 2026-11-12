@@ -172,6 +172,10 @@ In the Vercel project → **Settings → Environment Variables**, add the same k
 - `NEXT_PUBLIC_SITE_URL` — your production URL; used as the OAuth / magic-link
   redirect origin in production
 - `ANILIST_API_URL` (optional)
+- `CRON_SECRET` — any long random string (e.g. `openssl rand -hex 32`). Vercel sends
+  it to the daily `/api/keepalive` cron (`vercel.json`), which pings Supabase so the
+  free-tier project doesn't pause after a week of inactivity. Without it the cron
+  route returns 401 and does nothing.
 
 Apply to **Production** (and Preview if you want PR previews to work with search).
 
