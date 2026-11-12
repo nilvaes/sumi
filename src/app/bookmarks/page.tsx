@@ -11,7 +11,7 @@ import type { CardMedia } from "@/components/anime-card";
 import { getMediaByIds } from "@/lib/anilist/api";
 import { AniListError } from "@/lib/anilist/client";
 import { getBookmarksByStatus } from "@/lib/bookmarks/db";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/user";
 
 export const metadata: Metadata = {
   title: "Bookmarks",
@@ -25,10 +25,7 @@ export default async function BookmarksPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) redirect("/login?next=/bookmarks");
 

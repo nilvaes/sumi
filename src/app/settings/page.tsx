@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DeleteAccountForm } from "@/components/settings/delete-account-form";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/user";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -27,10 +27,7 @@ export default async function SettingsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) redirect("/login?next=/settings");
 
