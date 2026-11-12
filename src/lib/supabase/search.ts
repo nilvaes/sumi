@@ -21,10 +21,12 @@ export async function searchAnimeDb(
   query: string,
   page = 1,
 ): Promise<{ results: SearchAnime[]; hasNextPage: boolean }> {
-  const term = query.replace(/[%_]/g, " ").trim();
+  // LIKE wildcards are escaped inside search_anime(); stripping them here too keeps
+  // results consistent on databases that haven't applied the 2026-11-12 migration.
+  const term = query.replace(/[%_\\]/g, " ").trim().slice(0, 100);
   if (term.length < 2) return { results: [], hasNextPage: false };
 
-  const off = (page - 1) * PER_PAGE;
+  const off = Math.min((page - 1) * PER_PAGE, 10_000);
 
   const { data, error } = await supabase.rpc("search_anime", {
     q: term,

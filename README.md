@@ -93,8 +93,12 @@ cp .env.example .env.local
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run the full [`supabase/schema.sql`](supabase/schema.sql)
-   (table, `pg_trgm` index, `search_anime()` function, RLS read policy).
+   (tables, `pg_trgm` index, `search_anime()` function, RLS policies). The file is
+   idempotent, so re-running it is safe.
 3. Fill Supabase keys in `.env.local`.
+
+**Existing projects:** apply new files in [`supabase/migrations/`](supabase/migrations)
+in order (SQL Editor or `supabase db push`) instead of re-running the full schema.
 
 ### 4. Sync the search catalog
 
