@@ -46,7 +46,8 @@ export async function AnimeDetailContent({ id }: { id: string }) {
   const cover = media.coverImage?.extraLarge;
   const description = stripHtml(media.description);
   const studios = media.studios?.nodes?.filter((s) => s) ?? [];
-  const relations = media.relations?.edges?.filter((e) => e?.node) ?? [];
+  const relations =
+    media.relations?.edges?.filter((e) => e?.node && !e.node.isAdult) ?? [];
   const youtubeId =
     media.trailer?.site === "youtube" ? media.trailer.id : null;
 

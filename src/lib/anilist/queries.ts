@@ -124,6 +124,7 @@ export const AnimeDetailQuery = graphql(`
       popularity
       favourites
       genres
+      isAdult
       studios(isMain: true) {
         nodes {
           id
@@ -150,6 +151,7 @@ export const AnimeDetailQuery = graphql(`
           node {
             id
             type
+            isAdult
             title {
               romaji
             }
