@@ -27,15 +27,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
-    // AniList covers/banners use `unoptimized` — served from s4.anilist.co as-is.
-    formats: ["image/webp"],
-    minimumCacheTTL: 2_678_400, // 31 days — fewer re-transforms for repeat/crawler hits
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "s4.anilist.co",
-      },
-    ],
+    // Covers are resized by picking one of AniList's own stored sizes (see the
+    // loader) — no image-optimization service involved. Banners only exist in
+    // one size and use `unoptimized`.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

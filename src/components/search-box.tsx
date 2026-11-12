@@ -189,7 +189,6 @@ export function SearchBox({ className }: { className?: string }) {
                             fill
                             sizes="36px"
                             className="object-cover"
-                            unoptimized
                           />
                         )}
                       </div>
