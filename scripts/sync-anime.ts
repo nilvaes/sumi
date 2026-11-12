@@ -8,7 +8,8 @@
  *
  * Safe to run any time; it never empties the table:
  *  - new anime are added, existing rows get updated values (a value the dataset
- *    doesn't have never blanks out one we already know),
+ *    doesn't have never blanks out one we already know); rows that have AniList
+ *    data keep AniList's values and only get gaps and alternative titles filled,
  *  - rows the dataset doesn't know yet (the newest anime, added by the weekly
  *    AniList top-up) are kept,
  *  - entries the dataset tags as adult are removed.
@@ -23,6 +24,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   anilistIdFromSources,
   entryToFields,
+  hasAniListData,
   isAdultEntry,
   mergeDatasetFields,
   type DatasetEntry,
@@ -80,17 +82,33 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-/** Every stored row's dataset-backed columns, keyed by AniList id. */
-async function loadExisting(): Promise<Map<number, DatasetFields>> {
-  const rows = new Map<number, DatasetFields>();
+type Existing = { fields: DatasetFields; fromAniList: boolean };
+
+/** Every stored row's dataset-backed columns (+ whether AniList filled it), by id. */
+async function loadExisting(): Promise<Map<number, Existing>> {
+  const rows = new Map<number, Existing>();
   for (let from = 0; ; from += READ_PAGE) {
     const { data, error } = await supabase
       .from("anime")
-      .select("anilist_id, title_romaji, synonyms, cover_image, format, season_year, episodes")
+      .select(
+        "anilist_id, title_romaji, synonyms, cover_image, format, season_year, episodes, title_english, cover_color, average_score, genres",
+      )
       .order("anilist_id")
       .range(from, from + READ_PAGE - 1);
     if (error) throw new Error(`Reading existing rows failed: ${error.message}`);
-    for (const { anilist_id, ...fields } of data ?? []) rows.set(anilist_id, fields);
+    for (const r of data ?? []) {
+      rows.set(r.anilist_id, {
+        fields: {
+          title_romaji: r.title_romaji,
+          synonyms: r.synonyms,
+          cover_image: r.cover_image,
+          format: r.format,
+          season_year: r.season_year,
+          episodes: r.episodes,
+        },
+        fromAniList: hasAniListData(r),
+      });
+    }
     if (!data || data.length < READ_PAGE) break;
   }
   return rows;
@@ -128,7 +146,9 @@ async function main() {
   const now = new Date().toISOString();
   for (const [id, fields] of incoming) {
     const before = existing.get(id);
-    const { row, changed } = mergeDatasetFields(before, fields);
+    const { row, changed } = mergeDatasetFields(before?.fields, fields, {
+      keepExisting: before?.fromAniList ?? false,
+    });
     if (!changed) continue;
     if (before) updated++;
     else added++;

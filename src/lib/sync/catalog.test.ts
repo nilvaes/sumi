@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   anilistIdFromSources,
   entryToFields,
+  hasAniListData,
   isAdultEntry,
   mergeDatasetFields,
   reachedHighWater,
@@ -43,6 +44,30 @@ describe("mergeDatasetFields", () => {
     });
     expect(changed).toBe(false);
     expect(row).toEqual(base);
+  });
+});
+
+describe("mergeDatasetFields with AniList data", () => {
+  const fromAniList: DatasetFields = { ...base, title_romaji: "Loop 7-kaime", format: "ONA", season_year: null };
+
+  it("keeps AniList's values and only fills gaps and synonyms", () => {
+    const { row, changed } = mergeDatasetFields(
+      fromAniList,
+      { ...base, title_romaji: "7th Time Loop", format: "TV", season_year: 2024, synonyms: ["Loop 7"] },
+      { keepExisting: true },
+    );
+    expect(changed).toBe(true);
+    expect(row.title_romaji).toBe("Loop 7-kaime");
+    expect(row.format).toBe("ONA");
+    expect(row.season_year).toBe(2024);
+    expect(row.synonyms).toEqual(["Loop 7"]);
+  });
+
+  it("detects rows that came from AniList", () => {
+    const none = { title_english: null, cover_color: null, average_score: null, genres: [] };
+    expect(hasAniListData(none)).toBe(false);
+    expect(hasAniListData({ ...none, genres: ["Drama"] })).toBe(true);
+    expect(hasAniListData({ ...none, cover_color: "#fff" })).toBe(true);
   });
 });
 

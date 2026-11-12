@@ -67,14 +67,40 @@ function present(v: unknown) {
 }
 
 /**
- * Merge dataset values into an existing row: a dataset value wins when it has
- * one, otherwise the stored value is kept. So a refresh can fill in or correct
- * data but never blanks out something we already know (e.g. a year that the
- * weekly AniList refresh found before the dataset caught up).
+ * Columns only the AniList top-up writes. A row with any of them set came from
+ * (or was refreshed from) AniList itself, which is the source of truth for ids,
+ * titles and formats; the offline dataset sometimes differs (e.g. an English
+ * title in the romaji slot).
+ */
+export type AniListMarkers = {
+  title_english: string | null;
+  cover_color: string | null;
+  average_score: number | null;
+  genres: string[];
+};
+
+export function hasAniListData(row: AniListMarkers): boolean {
+  return (
+    row.title_english !== null ||
+    row.cover_color !== null ||
+    row.average_score !== null ||
+    row.genres.length > 0
+  );
+}
+
+/**
+ * Merge dataset values into an existing row. Never blanks out something we
+ * already know (e.g. a year the weekly AniList refresh found before the dataset
+ * caught up).
+ * - Default: a dataset value wins when it has one.
+ * - `keepExisting` (rows with AniList data): the dataset only fills fields we
+ *   don't have yet, plus alternative titles (synonyms), which AniList's search
+ *   fields don't give us.
  */
 export function mergeDatasetFields(
   existing: DatasetFields | undefined,
   incoming: DatasetFields,
+  { keepExisting = false }: { keepExisting?: boolean } = {},
 ): { row: DatasetFields; changed: boolean } {
   if (!existing) return { row: incoming, changed: true };
 
@@ -83,6 +109,7 @@ export function mergeDatasetFields(
   for (const key of DATASET_FIELDS) {
     const next = incoming[key];
     if (!present(next)) continue;
+    if (keepExisting && key !== "synonyms" && present(existing[key])) continue;
     if (JSON.stringify(next) !== JSON.stringify(existing[key])) {
       (row as Record<string, unknown>)[key] = next;
       changed = true;
