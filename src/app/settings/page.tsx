@@ -59,6 +59,31 @@ export default async function SettingsPage({
         )}
       </section>
 
+      <section className="space-y-3 rounded-md border border-border bg-surface p-4">
+        <h2 className="text-sm font-medium text-text">Export bookmarks</h2>
+        <p className="text-sm text-text-muted">
+          Download all your bookmarks with their status and last-updated date.
+          CSV opens in Excel or Google Sheets; JSON is for importing elsewhere.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {/* Plain links (not <Link>): these are file downloads, not pages. */}
+          <a
+            href="/settings/export?format=csv"
+            download
+            className="inline-flex items-center rounded-md border border-border bg-bg px-3 py-1.5 text-sm text-text transition-colors hover:border-brand"
+          >
+            Download CSV
+          </a>
+          <a
+            href="/settings/export?format=json"
+            download
+            className="inline-flex items-center rounded-md border border-border bg-bg px-3 py-1.5 text-sm text-text transition-colors hover:border-brand"
+          >
+            Download JSON
+          </a>
+        </div>
+      </section>
+
       <section className="space-y-3 rounded-md border border-brand/30 bg-surface p-4">
         <h2 className="text-sm font-medium text-text">Delete account</h2>
         <DeleteAccountForm />

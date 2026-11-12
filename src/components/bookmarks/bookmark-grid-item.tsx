@@ -20,17 +20,21 @@ export function BookmarkGridItem({
   tab: BookmarkStatus;
 }) {
   const router = useRouter();
-  const { patch } = useBookmarks();
+  const { patch, notify } = useBookmarks();
   const [pending, startTransition] = useTransition();
 
-  function run(action: () => Promise<void>, onSuccess?: () => void) {
+  function run(
+    action: () => Promise<void>,
+    onSuccess: () => void,
+    failure: string,
+  ) {
     startTransition(async () => {
       try {
         await action();
-        onSuccess?.();
+        onSuccess();
         router.refresh();
       } catch {
-        // ignore
+        notify(failure);
       }
     });
   }
@@ -47,6 +51,7 @@ export function BookmarkGridItem({
               run(
                 () => setBookmarkStatus(media.id, "completed"),
                 () => patch(media.id, "completed"),
+                "Couldn't mark it as completed. Please try again.",
               )
             }
             className={cn(
@@ -64,6 +69,7 @@ export function BookmarkGridItem({
             run(
               () => removeBookmark(media.id),
               () => patch(media.id, null),
+              "Couldn't remove that bookmark. Please try again.",
             )
           }
           className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs text-text-muted transition-colors hover:border-brand hover:text-text disabled:opacity-50"
