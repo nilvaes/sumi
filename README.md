@@ -60,8 +60,9 @@ Browser
   [anime-offline-database](https://github.com/manami-project/anime-offline-database)
   release and upserts ~20k titles (with AniList IDs) into Postgres — run
   **manually** when you want a full refresh. `scripts/sync-anilist-gaps.ts` runs
-  **weekly** (GitHub Action) to top up missing recent titles (~150 newest anime
-  max, stop when caught up, ~1–3 API calls/week).
+  **weekly** (GitHub Action): it adds every anime newer than the newest one stored
+  (so nothing is skipped even after a long pause) and re-checks entries still
+  missing a year — ~3 API calls/week.
   Hybrid search still falls back to live AniList when the index misses a query.
   Detail pages load live from AniList when you click a result.
 
@@ -108,9 +109,11 @@ in order (SQL Editor or `supabase db push`) instead of re-running the full schem
 npm run sync
 ```
 
-Downloads the latest offline dataset release and upserts anime with AniList IDs
-(~1 minute). Re-run manually whenever you want titles/synonyms refreshed from
-manami.
+Downloads the latest offline dataset release and adds/updates anime with AniList
+IDs (~1 minute). It never empties the table: anime the dataset doesn't have yet
+(the newest ones from the weekly AniList top-up) are kept, AniList's own values
+win over the dataset's, and titles the dataset tags as adult are removed. Safe to
+re-run any time. Preview first with `npm run sync -- --dry-run` (writes nothing).
 
 **Ongoing** — newest titles are added automatically each week via
 [AniList gap-fill](#automated-weekly-gap-fill). You can also run locally:
@@ -216,7 +219,8 @@ Newest anime are topped up by a scheduled GitHub Action
 `npm run sync:gaps:ci` every Monday (and on-demand via **Run workflow**).
 
 The full offline-dataset refresh (`npm run sync`) is **manual** — run locally
-when you want to reload ~20k titles from manami.
+when you want titles/synonyms refreshed from manami. Both scripts accept
+`-- --dry-run` to report what they would change without writing anything.
 
 Set these as **GitHub repository secrets**
 (Settings → Secrets and variables → Actions → New repository secret):
@@ -224,7 +228,7 @@ Set these as **GitHub repository secrets**
 | Secret | Value |
 |--------|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service-role** key (server-only) |
+| `SUPABASE_SERVICE_ROLE_KEY` | A Supabase **secret** key (`sb_secret_…`; server-only) |
 
 The service-role key lives only in GitHub's encrypted secrets and is never
 committed. To run gap-fill manually, open **Actions** → **Weekly AniList gap-fill**

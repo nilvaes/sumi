@@ -1,23 +1,65 @@
 /**
- * Loads the anime catalog into Supabase to power fast partial/fuzzy search.
+ * Refreshes the anime catalog in Supabase that powers fast partial/fuzzy search.
  *
  * Source: manami-project/anime-offline-database (ODbL 1.0) — an openly licensed,
- * redistributable dataset, so this does NOT scrape or hoard the AniList API.
- * Only entries that carry an AniList id are kept (so click-through to our live
- * AniList detail pages works).
+ * redistributable dataset, so this does NOT scrape or hoard the AniList API
+ * (it makes zero AniList requests). Only entries with an AniList id are kept,
+ * so click-through to our live AniList detail pages works.
  *
- * Run manually when you want a full ~20k refresh:  npm run sync
- * (Weekly CI only runs AniList gap-fill — see scripts/sync-anilist-gaps.ts.)
+ * Safe to run any time; it never empties the table:
+ *  - new anime are added, existing rows get updated values (a value the dataset
+ *    doesn't have never blanks out one we already know); rows that have AniList
+ *    data keep AniList's values and only get gaps and alternative titles filled,
+ *  - rows the dataset doesn't know yet (the newest anime, added by the weekly
+ *    AniList top-up) are kept,
+ *  - entries the dataset tags as adult are removed.
+ * A failure part-way leaves the previous data in place.
+ *
+ *   npm run sync              apply changes
+ *   npm run sync -- --dry-run report what would change, write nothing
+ *
+ * (Weekly CI only runs the AniList top-up — see scripts/sync-anilist-gaps.ts.)
  */
 import { createClient } from "@supabase/supabase-js";
+import {
+  anilistIdFromSources,
+  entryToFields,
+  hasAniListData,
+  isAdultEntry,
+  mergeDatasetFields,
+  type DatasetEntry,
+  type DatasetFields,
+} from "@/lib/sync/catalog";
+
+const DRY_RUN = process.argv.includes("--dry-run");
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// A dry run only reads (the anime table is publicly readable), so the public key
+// is enough; writing needs the secret key.
+const KEY = DRY_RUN
+  ? (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  : process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // The dataset is published as weekly GitHub releases; resolve the current one.
 const RELEASE_API =
   "https://api.github.com/repos/manami-project/anime-offline-database/releases/latest";
 const ASSET_NAME = "anime-offline-database-minified.json";
+
+const READ_PAGE = 1000; // PostgREST's default max rows per request
+const WRITE_BATCH = 500;
+const DELETE_BATCH = 300; // ids per `in (...)`, keeps the URL short
+
+if (!SUPABASE_URL || !KEY) {
+  console.error(
+    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. " +
+      "Run via `npm run sync` (loads .env.local).",
+  );
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, KEY, {
+  auth: { persistSession: false },
+});
 
 async function datasetUrl(): Promise<string> {
   const res = await fetch(RELEASE_API, {
@@ -34,84 +76,47 @@ async function datasetUrl(): Promise<string> {
   return asset.browser_download_url;
 }
 
-if (!SUPABASE_URL || !SERVICE_ROLE) {
-  console.error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. " +
-      "Run via `npm run sync` (loads .env.local).",
-  );
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
-  auth: { persistSession: false },
-});
-
-type Entry = {
-  sources: string[];
-  title: string;
-  type: string;
-  episodes: number | null;
-  animeSeason?: { season?: string; year?: number | null };
-  picture?: string | null;
-  synonyms?: string[];
-  tags?: string[];
-};
-
-const FORMATS = new Set([
-  "TV",
-  "TV_SHORT",
-  "MOVIE",
-  "SPECIAL",
-  "OVA",
-  "ONA",
-  "MUSIC",
-]);
-
-function anilistId(sources: string[]): number | null {
-  for (const url of sources) {
-    const m = url.match(/anilist\.co\/anime\/(\d+)/);
-    if (m) return Number(m[1]);
-  }
-  return null;
-}
-
-/** The dataset has no isAdult flag; adult titles carry these tags. */
-const ADULT_TAGS = new Set(["hentai", "erotic game", "pornography"]);
-
-function isAdult(e: Entry): boolean {
-  return (e.tags ?? []).some((t) => ADULT_TAGS.has(t.toLowerCase()));
-}
-
-function toRow(e: Entry) {
-  const id = anilistId(e.sources);
-  if (id === null || isAdult(e)) return null;
-  const format = FORMATS.has(e.type) ? e.type : null;
-  return {
-    anilist_id: id,
-    title_romaji: e.title,
-    title_english: null,
-    title_native: null,
-    synonyms: (e.synonyms ?? []).filter(Boolean),
-    cover_image: e.picture ?? null,
-    cover_color: null,
-    format,
-    season_year: e.animeSeason?.year ?? null,
-    episodes: e.episodes ?? null,
-    average_score: null,
-    popularity: 0,
-    genres: [] as string[],
-    updated_at: new Date().toISOString(),
-  };
-}
-
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
 
+type Existing = { fields: DatasetFields; fromAniList: boolean };
+
+/** Every stored row's dataset-backed columns (+ whether AniList filled it), by id. */
+async function loadExisting(): Promise<Map<number, Existing>> {
+  const rows = new Map<number, Existing>();
+  for (let from = 0; ; from += READ_PAGE) {
+    const { data, error } = await supabase
+      .from("anime")
+      .select(
+        "anilist_id, title_romaji, synonyms, cover_image, format, season_year, episodes, title_english, cover_color, average_score, genres",
+      )
+      .order("anilist_id")
+      .range(from, from + READ_PAGE - 1);
+    if (error) throw new Error(`Reading existing rows failed: ${error.message}`);
+    for (const r of data ?? []) {
+      rows.set(r.anilist_id, {
+        fields: {
+          title_romaji: r.title_romaji,
+          synonyms: r.synonyms,
+          cover_image: r.cover_image,
+          format: r.format,
+          season_year: r.season_year,
+          episodes: r.episodes,
+        },
+        fromAniList: hasAniListData(r),
+      });
+    }
+    if (!data || data.length < READ_PAGE) break;
+  }
+  return rows;
+}
+
 async function main() {
   console.time("sync");
+  if (DRY_RUN) console.log("Dry run: nothing will be written.\n");
 
   console.log("Resolving latest dataset release…");
   const url = await datasetUrl();
@@ -119,32 +124,73 @@ async function main() {
   console.log("Downloading anime-offline-database…");
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Dataset download failed (${res.status})`);
-  const json = (await res.json()) as { data: Entry[] };
+  const json = (await res.json()) as { data: DatasetEntry[] };
 
-  const rows = json.data
-    .map(toRow)
-    .filter((r): r is NonNullable<typeof r> => r !== null);
-  console.log(`Parsed ${rows.length} anime with AniList ids.`);
+  const incoming = new Map<number, DatasetFields>();
+  const adultIds = new Set<number>();
+  for (const entry of json.data) {
+    const id = anilistIdFromSources(entry.sources);
+    if (id === null) continue;
+    if (isAdultEntry(entry)) adultIds.add(id);
+    else incoming.set(id, entryToFields(entry));
+  }
+  console.log(`Dataset: ${incoming.size} anime with AniList ids (${adultIds.size} adult skipped).`);
 
-  // Replace any previously stored (incl. earlier AniList-scraped) rows.
-  console.log("Clearing existing rows…");
-  const { error: delErr } = await supabase
-    .from("anime")
-    .delete()
-    .gte("anilist_id", 0);
-  if (delErr) throw new Error(`Delete failed: ${delErr.message}`);
+  console.log("Reading current catalog…");
+  const existing = await loadExisting();
+  console.log(`Catalog: ${existing.size} anime.`);
 
-  let inserted = 0;
-  for (const batch of chunk(rows, 500)) {
+  const toWrite: (DatasetFields & { anilist_id: number; updated_at: string })[] = [];
+  let added = 0;
+  let updated = 0;
+  const now = new Date().toISOString();
+  for (const [id, fields] of incoming) {
+    const before = existing.get(id);
+    const { row, changed } = mergeDatasetFields(before?.fields, fields, {
+      keepExisting: before?.fromAniList ?? false,
+    });
+    if (!changed) continue;
+    if (before) updated++;
+    else added++;
+    toWrite.push({ anilist_id: id, ...row, updated_at: now });
+  }
+
+  const adultToRemove = [...adultIds].filter((id) => existing.has(id));
+  const keptNewer = [...existing.keys()].filter(
+    (id) => !incoming.has(id) && !adultIds.has(id),
+  ).length;
+
+  console.log(
+    `\nPlan: add ${added}, update ${updated}, remove ${adultToRemove.length} adult, ` +
+      `keep ${keptNewer} not in the dataset yet (newest anime), ` +
+      `leave ${existing.size - updated - adultToRemove.length - keptNewer} unchanged.`,
+  );
+
+  if (DRY_RUN) {
+    console.timeEnd("sync");
+    return;
+  }
+
+  // Only the dataset's columns are sent: on conflict PostgREST updates just these,
+  // so English titles, genres and scores from the AniList top-up are preserved.
+  let written = 0;
+  for (const batch of chunk(toWrite, WRITE_BATCH)) {
     const { error } = await supabase
       .from("anime")
       .upsert(batch, { onConflict: "anilist_id" });
     if (error) throw new Error(`Upsert failed: ${error.message}`);
-    inserted += batch.length;
-    if (inserted % 5000 === 0) console.log(`  ${inserted} inserted…`);
+    written += batch.length;
+    if (written % 5000 < WRITE_BATCH) console.log(`  ${written}/${toWrite.length} written…`);
   }
 
-  console.log(`\nDone. ${inserted} anime synced.`);
+  for (const ids of chunk(adultToRemove, DELETE_BATCH)) {
+    const { error } = await supabase.from("anime").delete().in("anilist_id", ids);
+    if (error) throw new Error(`Removing adult titles failed: ${error.message}`);
+  }
+
+  console.log(
+    `\nDone. ${added} added, ${updated} updated, ${adultToRemove.length} adult removed.`,
+  );
   console.timeEnd("sync");
 }
 
