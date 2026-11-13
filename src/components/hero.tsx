@@ -3,7 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type TouchEvent,
+} from "react";
 import type { HeroFieldsFragment } from "@/lib/anilist/gql/graphql";
 import { cn } from "@/lib/utils";
 import { formatCountdown, stripHtml } from "@/lib/utils/format";
@@ -12,12 +19,27 @@ const ROTATE_MS = 7000;
 const SLIDE_MS = 420;
 const SWIPE_INTENT_PX = 16;
 
+/** Below this many slides with a banner, slides without one are shown too. */
+const MIN_BANNER_SLIDES = 3;
+
+/**
+ * How a slide's banner loads: the first slide is preloaded, slides next to the
+ * one on screen load right away (so they're ready before they slide in), and
+ * the rest wait until they get close.
+ */
+type BannerLoad = "preload" | "eager" | "lazy";
+
+function subscribeVisibility(onChange: () => void) {
+  document.addEventListener("visibilitychange", onChange);
+  return () => document.removeEventListener("visibilitychange", onChange);
+}
+
 function HeroSlide({
   slide,
-  priority,
+  load,
 }: {
   slide: HeroFieldsFragment;
-  priority: boolean;
+  load: BannerLoad;
 }) {
   const title = slide.title?.english ?? slide.title?.romaji ?? "Untitled";
   const romaji =
@@ -31,12 +53,20 @@ function HeroSlide({
 
   return (
     <div className="relative h-full w-full shrink-0 basis-full overflow-hidden bg-bg">
+      {banner && tint && (
+        // Faint cover colour while the banner is still downloading.
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-25"
+          style={{ backgroundColor: tint }}
+        />
+      )}
       {banner ? (
         <Image
           src={banner}
           alt=""
           fill
-          priority={priority}
+          {...(load === "preload" ? { preload: true } : { loading: load })}
           sizes="100vw"
           className="object-cover object-center"
           unoptimized
@@ -125,9 +155,11 @@ export function Hero({
 }: {
   items: readonly (HeroFieldsFragment | null)[];
 }) {
-  const slides = items
-    .filter((m): m is HeroFieldsFragment => Boolean(m))
-    .sort((a, b) => Number(!!b.bannerImage) - Number(!!a.bannerImage));
+  const all = items.filter((m): m is HeroFieldsFragment => Boolean(m));
+  const withBanner = all.filter((m) => m.bannerImage);
+  // A slide without a banner is just a flat colour, so skip those when there
+  // are enough with one.
+  const slides = withBanner.length >= MIN_BANNER_SLIDES ? withBanner : all;
   const count = slides.length;
   const loop = count > 1;
   const trackSlides = loop
@@ -160,23 +192,35 @@ export function Hero({
     });
   }, []);
 
-  const onTrackTransitionEnd = useCallback(() => {
+  /*
+    After sliding onto a copy at either end, swap to the real slide once the
+    slide animation is over. A timer rather than `transitionend`: that event
+    doesn't fire when the animation is interrupted or the tab is in the
+    background, which used to leave the track stuck past its last slide.
+  */
+  useEffect(() => {
     if (!loop || dragging) return;
-    if (position === 0) jumpWithoutTransition(count);
-    else if (position === count + 1) jumpWithoutTransition(1);
+    if (position !== 0 && position !== count + 1) return;
+    const id = setTimeout(
+      () => jumpWithoutTransition(position === 0 ? count : 1),
+      SLIDE_MS,
+    );
+    return () => clearTimeout(id);
   }, [count, dragging, jumpWithoutTransition, loop, position]);
 
+  // Never move past the copies at either end; a press while sitting on a copy
+  // (for at most one animation) is ignored instead of running off the track.
   const goNext = useCallback(() => {
     if (!loop) return;
     setTransition(true);
-    setPosition((p) => p + 1);
+    setPosition((p) => Math.min(p + 1, count + 1));
     setDragPx(0);
-  }, [loop]);
+  }, [count, loop]);
 
   const goPrev = useCallback(() => {
     if (!loop) return;
     setTransition(true);
-    setPosition((p) => p - 1);
+    setPosition((p) => Math.max(p - 1, 0));
     setDragPx(0);
   }, [loop]);
 
@@ -195,11 +239,18 @@ export function Hero({
     [count, jumpWithoutTransition, loop, realIndex],
   );
 
+  // Don't rotate while the tab is in the background; pick up where you left off.
+  const hidden = useSyncExternalStore(
+    subscribeVisibility,
+    () => document.visibilityState === "hidden",
+    () => false,
+  );
+
   useEffect(() => {
-    if (!loop || paused || dragging) return;
+    if (!loop || paused || dragging || hidden) return;
     const id = setInterval(goNext, ROTATE_MS);
     return () => clearInterval(id);
-  }, [dragging, goNext, loop, paused]);
+  }, [dragging, goNext, hidden, loop, paused]);
 
   useEffect(() => {
     if (count <= 1) return;
@@ -318,20 +369,25 @@ export function Hero({
     >
       <div
         className={cn(
-          "flex h-full will-change-transform ease-out motion-reduce:transition-none",
+          "flex h-full ease-out will-change-transform motion-reduce:transition-none",
           transition && !dragging && "transition-transform",
         )}
         style={{
           transform: trackTransform,
           transitionDuration: dragging || !transition ? "0ms" : `${SLIDE_MS}ms`,
         }}
-        onTransitionEnd={onTrackTransitionEnd}
       >
         {trackSlides.map((slide, i) => (
           <HeroSlide
             key={`${slide.id}-${i}`}
             slide={slide}
-            priority={!loop ? i === 0 : i === 1}
+            load={
+              i === (loop ? 1 : 0)
+                ? "preload"
+                : Math.abs(i - position) <= 1
+                  ? "eager"
+                  : "lazy"
+            }
           />
         ))}
       </div>
@@ -375,8 +431,8 @@ export function Hero({
                   className={cn(
                     "h-1.5 rounded-full transition-all duration-300 ease-out",
                     i === realIndex
-                      ? "w-6 bg-brand"
-                      : "w-1.5 bg-text-muted/60 hover:bg-text-muted",
+                      ? "bg-brand w-6"
+                      : "bg-text-muted/60 hover:bg-text-muted w-1.5",
                   )}
                 />
               ))}
